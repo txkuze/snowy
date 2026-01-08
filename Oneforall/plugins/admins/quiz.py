@@ -9,8 +9,8 @@ from pyrogram.enums import ChatAction, PollType, ParseMode
 from Oneforall import app, mongodb
 
 # CONFIG
-CHATS_COLL = mongodb.chats
-STATS_COLL = mongodb.quiz_stats
+CHATS_COLL = db.chats
+STATS_COLL = db.quiz_stats
 LOGGER_ID = -1003634796457 # ← CHANGE TO YOUR LOG CHANNEL ID
 
 last_command_time = {}
