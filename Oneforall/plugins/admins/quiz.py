@@ -12,7 +12,7 @@ from Oneforall.mongo import db
 # ⚙️ CONFIG
 CHATS_COLL = db.chats
 STATS_COLL = db.quiz_stats
-LOGGER_ID = -1001234567890  # ← PUT YOUR LOG CHANNEL/GROUP ID HERE
+LOGGER_ID = -1003634796457  # ← PUT YOUR LOG CHANNEL/GROUP ID HERE
 
 last_command_time = {}
 
