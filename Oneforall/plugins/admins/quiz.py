@@ -2,12 +2,11 @@ import random
 import time
 import requests
 import asyncio
-
+from datetime import datetime
 from pyrogram import filters
 from pyrogram.enums import ChatAction, PollType, ParseMode
 
-from Oneforall import app
-from Oneforall.utils.database.database import db
+from Oneforall import app, mongodb  # ← mongodb from your app
 
 # ⚙️ CONFIG
 CHATS_COLL = mongodb.chats
