@@ -6,18 +6,19 @@ from pyrogram.enums import ParseMode
 from Oneforall import app
 from Oneforall.mongo import db
 
-STATS_COLL = mongodb.quiz_stats
-CHATS_COLL = mongodb.chats
+STATS_COLL = db.quiz_stats  # Fixed: use db not mongodb
+CHATS_COLL = db.chats
 
-# 🎥 VIDEO + IMAGE (Catbox URLs)
-LEADERBOARD_VIDEO = "https://files.catbox.moe/dtcr9p.mp4"  # YOUR VIDEO
-TROPHY_IMAGE = "https://files.catbox.moe/qplosp.jpg"  # fallback image
-
+# 🎥 VIDEO + IMAGE (Your URLs)
+LEADERBOARD_VIDEO = "https://files.catbox.moe/dtcr9p.mp4"
+TROPHY_IMAGE = "https://files.catbox.moe/qplosp.jpg"
 
 @app.on_poll_voted()
 async def track_quiz_results(client, poll):
-    if not poll.quiz: return
-    
+    """Auto track scores when users vote quiz"""
+    if not poll.quiz:
+        return
+        
     chat_id = poll.chat.id
     voters = poll.recent_voters or []
     
@@ -33,29 +34,32 @@ async def track_quiz_results(client, poll):
             upsert=True
         )
 
-
 async def get_target_chats():
+    """Get all groups"""
     cursor = CHATS_COLL.find({"type": {"$in": ["group", "supergroup"]}})
     return [doc["chat_id"] async for doc in cursor]
 
-
 async def get_quiz_leaderboard(chat_id: int, limit=10):
+    """Get top 10 users by correct answers"""
     pipeline = [
         {"$match": {"chat_id": chat_id}},
         {"$group": {
-            "_id": "$user_id", "username": {"$first": "$username"},
-            "user_id": {"$first": "$user_id"}, "correct_count": {"$sum": "$correct"}
+            "_id": "$user_id",
+            "username": {"$first": "$username"},
+            "user_id": {"$first": "$user_id"},
+            "correct_count": {"$sum": "$correct"}
         }},
-        {"$sort": {"correct_count": -1}}, {"$limit": limit}
+        {"$sort": {"correct_count": -1}},
+        {"$limit": limit}
     ]
     return list(STATS_COLL.aggregate(pipeline))
 
-
 async def send_leaderboard(chat_id: int, manual=False):
+    """Send leaderboard with video/image"""
     top_users = await get_quiz_leaderboard(chat_id)
     
     if not top_users:
-        msg = await app.send_message(chat_id, "🏆 **No quiz stats yet!**")
+        msg = await app.send_message(chat_id, "🏆 **No quiz stats yet! Play some quizzes first.**")
     else:
         text = "🏆 **QUIZ LEADERBOARD** (Top 10)
 
@@ -67,7 +71,7 @@ async def send_leaderboard(chat_id: int, manual=False):
             text += f"{emoji} **{name}** → `{score}` ✅
 "
         
-        # 🎥 PRIORITY: Video (with thumbnail fallback)
+        # 🎥 Try video first
         try:
             msg = await app.send_video(
                 chat_id=chat_id,
@@ -75,10 +79,10 @@ async def send_leaderboard(chat_id: int, manual=False):
                 caption=text,
                 parse_mode=ParseMode.MARKDOWN,
                 supports_streaming=True,
-                duration=10  # adjust
+                duration=10
             )
         except:
-            # Fallback to image
+            # Fallback image
             msg = await app.send_photo(
                 chat_id=chat_id,
                 photo=TROPHY_IMAGE,
@@ -86,7 +90,7 @@ async def send_leaderboard(chat_id: int, manual=False):
                 parse_mode=ParseMode.MARKDOWN
             )
         
-        # 📌 AUTO-PIN (auto only, not manual)
+        # 📌 Auto-pin (auto only)
         if not manual:
             try:
                 await app.pin_chat_message(chat_id, msg.id, notify=False)
@@ -95,22 +99,24 @@ async def send_leaderboard(chat_id: int, manual=False):
     
     return msg
 
-
-# 🆕 MANUAL COMMAND
+# 🔥 MAIN COMMANDS - Works instantly!
 @app.on_message(filters.command(["quizlead", "leaderboard", "lb"]))
 async def quizlead_cmd(client, message):
+    """Manual leaderboard command"""
+    await message.reply("📊 **Loading leaderboard...**")
     await send_leaderboard(message.chat.id, manual=True)
-    await message.delete()  # clean command
-
+    await message.delete()  # Clean command
 
 async def auto_leaderboard_loop():
+    """Auto leaderboards 3PM + 9PM"""
     while True:
         now = datetime.now()
         afternoon = now.replace(hour=15, minute=0, second=0, microsecond=0)
         night = now.replace(hour=21, minute=0, second=0, microsecond=0)
         
         next_time = afternoon if now < afternoon else night
-        if now > night: next_time += timedelta(days=1)
+        if now > night:
+            next_time += timedelta(days=1)
         
         await asyncio.sleep((next_time - now).total_seconds())
         
@@ -122,8 +128,8 @@ async def auto_leaderboard_loop():
             except Exception as e:
                 print(f"LB failed {chat_id}: {e}")
 
-
 @app.on_startup()
 async def startup():
     asyncio.create_task(auto_leaderboard_loop())
-    print("📊 QuizLead + Auto LB started!")
+    print("📊 QuizLead LOADED!")
+    print("📱 Commands: /quizlead /leaderboard /lb")
