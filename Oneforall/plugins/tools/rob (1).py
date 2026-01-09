@@ -1,4 +1,4 @@
-from Oneforall import HOTTY as bot
+from Oneforall import Hotty as bot
 from Oneforall import user_collection
 from pyrogram import filters
 from pyrogram.types import Message
