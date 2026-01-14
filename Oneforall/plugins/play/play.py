@@ -53,6 +53,11 @@ async def play_commnd(
     url,
     fplay,
 ):
+      # ✅ ADD STICKER HERE (FIRST)
+    await message.reply_sticker(
+        "CAACAgUAAxkBAAEQPYppZ5NUzyEuz9krlTBI7WJxE4l9HgACxggAAtL9OVfNmn5c5Qtt7DgE"
+    )
+    
     mystic = await message.reply_text(
         _["play_2"].format(channel) if channel else _["play_1"]
     )
