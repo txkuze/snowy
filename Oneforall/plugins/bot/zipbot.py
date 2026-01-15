@@ -3,9 +3,9 @@ import asyncio
 from dotenv import load_dotenv
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from utils.zipper import zip_file, zip_with_password, zip_multiple_files
-from utils.unzipper import unzip_file
-from utils.password_gen import generate_password
+from Oneforall.plugins.tools.zip import zip_file, zip_with_password, zip_multiple_files
+from Oneforall.plugins.tools.unzip import unzip_file
+from Oneforall.plugins.tools.password_gen import generate_password
 
 # Load environment variables
 load_dotenv()
@@ -14,7 +14,7 @@ API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 OWNER_ID = 7487670897
 
-app = Client("MultiBot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
+app = Client("HOTTY", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 user_files = {}
 session_messages = {}
@@ -61,19 +61,23 @@ async def reset_timer(user_id, duration=15):
     session_timers[user_id] = duration
 
 # Start
-@app.on_message(filters.command("start"))
+@app.on_message(filters.command("zipstart"))
 async def start(_, msg):
     user_id = msg.from_user.id
     reply = await msg.reply(
-        "👋 Welcome to Multi-Zip Bot!\n\n"
-        "📂 Send files, then use:\n"
-        "➔ /zip - Basic zip\n"
-        "➔ /zip_pwd <password> - Zip with password\n"
-        "➔ /unzip <password> - Unzip file\n"
-        "➔ /zip_multi - Zip all uploaded files\n"
-        "➔ /genpwd <length> - Generate password\n\n"
-        f"⏳ This session will auto-clear in {session_timers.get(user_id,15)} minutes."
-    )
+        "<blockquote>"
+    "👋 ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ ᴍᴜʟᴛɪ-ᴢɪᴘ ʙᴏᴛ!\n\n"
+    "📂 sᴇɴᴅ ғɪʟᴇs, ᴛʜᴇɴ ᴜsᴇ:\n"
+    "➔ /zip - ʙᴀsɪᴄ ᴢɪᴘ\n"
+    "➔ /zip_psd; - ᴢɪᴘ ᴡɪᴛʜ ᴘᴀssᴡᴏʀᴅ\n"
+    "➔ /unzip ; - ᴜɴᴢɪᴘ ғɪʟᴇ\n"
+    "➔ /zip_multi - ᴢɪᴘ ᴀʟʟ ᴜᴘʟᴏᴀᴅᴇᴅ ғɪʟᴇs\n"
+    "➔ /genpwd ; - ɢᴇɴᴇʀᴀᴛᴇ ᴘᴀssᴡᴏʀᴅ\n\n"
+    f"⏳ ᴛʜɪs sᴇssɪᴏɴ ᴡɪʟʟ ᴀᴜᴛᴏ-ᴄʟᴇᴀʀ ɪɴ {session_timers.get(user_id, 15)} ᴍɪɴᴜᴛᴇs.\n\n"
+    "🥀 <b>ᴍᴀᴅᴇ ʙʏ💗:</b> "
+    "<a href='https://t.me/owner_of_itachi'>✦ sᴇɢғᴀᴜʟᴛᴇᴅ ❕</a>"
+    "</blockquote>"
+)
     session_messages.setdefault(user_id, []).append(reply)
     await reset_timer(user_id)
 
