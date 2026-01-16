@@ -218,7 +218,7 @@ queue_6 : "<b>🕚 ᴅᴜʀᴀᴛɪᴏɴ :</b> ᴜɴᴋɴᴏᴡɴ ᴅᴜʀᴀᴛ
 queue_7 : "\nᴄʟɪᴄᴋ ᴏɴ ʙᴜᴛᴛᴏɴ ʙᴇʟᴏᴡ ᴛᴏ ɢᴇᴛ ᴡʜᴏʟᴇ ǫᴜᴇᴜᴇᴅ ʟɪsᴛ."
 queue_8 : "<b>{0} ᴘʟᴀʏᴇʀ</b>\n\n🎄 <b>sᴛʀᴇᴀᴍɪɴɢ :</b> {1}\n\n🔗 <b>sᴛʀᴇᴀᴍ ᴛʏᴘᴇ :</b> {2}\n🥀 <b>ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> {3}\n{4}"
 
-stream_1 : "<blockquote>✦🌸 <b>ᴀᴡᴀᴋᴇɴᴇᴅ ᴍᴜsɪᴄᴀʟ ᴠɪʙᴇs | ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ 🌸✦</b></blockquote>\n\n<blockquote><b>➠ Tɪᴛʟᴇ :</b> <a href={0}>{1}</a>\n<b>➠ Dᴜʀᴀᴛɪᴏɴ :</b> {2} ᴍɪɴᴜᴛᴇs\n<b>➠ Rᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> {3}</blockquote>\n<blockquote>🎀 ᴘᴏᴡᴇʀᴇᴅ ʙʏ :-[ ❥Uᴄʜɪʜᴀ - ᴍᴜ𝛅𝛊ᴄ ʙᴏᴛs ᵀᴹ ](https://t.me/dark_musictm)</blockquote>"
+stream_1 : "<blockquote>✦🌸 <b>ᴀᴡᴀᴋᴇɴᴇᴅ ᴍᴜsɪᴄᴀʟ ᴠɪʙᴇs | ɴᴏᴡ sᴛʀᴇᴀᴍɪɴɢ 🌸✦</b></blockquote>\n\n<blockquote><b>➠ Tɪᴛʟᴇ :</b> <a href={0}>{1}</a>\n<b>➠ Dᴜʀᴀᴛɪᴏɴ :</b> {2} ᴍɪɴᴜᴛᴇs\n<b>➠ Rᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> {3}</blockquote>\n<blockquote>🎀 ᴘᴏᴡᴇʀᴇᴅ ʙʏ :-[˹ᴄᴏɴᴇ𝘅ɪᴏɴ𝘀 ᴡᴇʙ˼ 🎧](https://t.me/dark_musictm)</blockquote>"
 stream_2 : "➲ <b> Sᴛᴀʀᴛᴇᴅ Sᴛʀᴇᴀᴍɪɴɢ |</b>\n\n<b>➠ Sᴛʀᴇᴀᴍ ᴛʏᴘᴇ :</b> ʟɪᴠᴇ sᴛʀᴇᴀᴍ [ᴜʀʟ]\n<b>➠ Rᴇǫᴜᴇsᴛᴇᴅ ʙʏ :</b> {0}" 
 stream_3 : "➲ <b>Mᴀᴅᴇ ʙʏ ➠ [segfaulted](https://t.me/snowy_hometown)"
 
