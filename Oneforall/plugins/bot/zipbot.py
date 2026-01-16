@@ -8,11 +8,13 @@ from Oneforall.plugins.tools.unzip import unzip_file
 from Oneforall.plugins.tools.password_gen import generate_password
 
 # Load environment variables
+# load environment variables
 load_dotenv()
+
 API_ID = int(os.getenv("API_ID"))
 API_HASH = os.getenv("API_HASH")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-OWNER_ID = 7487670897
+OWNER_ID = int(os.getenv("OWNER_ID"))
 
 app = Client("HOTTY", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
