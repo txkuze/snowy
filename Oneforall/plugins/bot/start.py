@@ -1,10 +1,4 @@
-    else:
-        out = private_panel(_)
-        await message.reply_sticker(
-            "CAACAgUAAxkBAAEQPYppZ5NUzyEuz9krlTBI7WJxE4l9HgACxggAAtL9OVfNmn5c5Qtt7DgE"
-        )
-        await message.reply_photo(
-       import time
+import time
 
 from pyrogram import filters
 from pyrogram.enums import ChatType
