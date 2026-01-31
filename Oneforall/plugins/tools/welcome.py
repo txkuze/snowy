@@ -1,6 +1,9 @@
-from pyrogram import filters
-from pyrogram.types import Message
+from pyrogram import filters, enums
+from pyrogram.types import ChatMemberUpdated
 from Oneforall import app
+from logging import getLogger
+
+LOGGER = getLogger(__name__)
 
 WELCOME_TEXT = """
 ⸻⬫⸺〈💖 𝐖ᴇʟᴄᴏᴍᴇ 𝐓ᴏ {group} 💖〉⸺⬫⸻
@@ -16,31 +19,40 @@ WELCOME_TEXT = """
 💗✨ 𝐄ɴᴊᴏʏ 𝐓ʜᴇ 𝐕ɪʙᴇ𝐬 • 𝐅ᴇᴇʟ 𝐓ʜᴇ 𝐌ᴜꜱɪᴄ ✨💗
 """
 
-@app.on_message(filters.new_chat_members & filters.group)
-async def welcome_new_member(_, message: Message):
-    chat = message.chat
-    group_name = chat.title or "This Group"
+@app.on_chat_member_updated(filters.group, group=-3)
+async def welcome_member(_, member: ChatMemberUpdated):
+    # ❌ Ignore leaves / bans / restrictions
+    if (
+        not member.new_chat_member
+        or member.new_chat_member.status
+        in {enums.ChatMemberStatus.LEFT, enums.ChatMemberStatus.BANNED}
+    ):
+        return
+
+    user = member.new_chat_member.user
+    chat = member.chat
 
     try:
         members_count = await app.get_chat_members_count(chat.id)
-    except:
+    except Exception:
         members_count = "—"
 
-    for user in message.new_chat_members:
-        name = user.first_name or "Unknown"
-        user_id = user.id
-        username = f"@{user.username}" if user.username else "None"
+    name = user.first_name or "Unknown"
+    username = f"@{user.username}" if user.username else "None"
 
-        text = WELCOME_TEXT.format(
-            group=group_name,
-            name=name,
-            id=user_id,
-            username=username,
-            members=members_count
-        )
+    text = WELCOME_TEXT.format(
+        group=chat.title or "This Group",
+        name=name,
+        id=user.id,
+        username=username,
+        members=members_count,
+    )
 
+    try:
         await app.send_message(
             chat.id,
             text,
             disable_web_page_preview=True
         )
+    except Exception as e:
+        LOGGER.error(e)
