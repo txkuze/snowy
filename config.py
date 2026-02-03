@@ -15,6 +15,10 @@ from pyrogram import filters
 API_ID = int(getenv("API_ID", "26950458"))
 API_HASH = getenv("API_HASH", "d818b8d530e4a9b209509815ab1b9c7c")
 
+UPSTREAM_REPO = getenv(
+    "UPSTREAM_REPO",
+    "https://github.com/txkuze/snowy",
+)
 BOT_TOKEN = getenv("BOT_TOKEN", "")
 OPENAI_API_KEY = getenv("OPENAI_API_KEY")
 
