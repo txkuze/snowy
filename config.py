@@ -8,8 +8,8 @@ from pyrogram import filters
 load_dotenv()
 
 # Get this value from my.telegram.org/apps
-API_ID = int(getenv("API_ID", "37553926"))
-API_HASH = getenv("API_HASH", "f4c47b45eba7feedcf46608aa25ee4ac")
+API_ID = int(getenv("API_ID", ""))
+API_HASH = getenv("API_HASH", "")
 
 # Get your token from @BotFather on Telegram.
 BOT_TOKEN = getenv("BOT_TOKEN","")
@@ -25,11 +25,11 @@ PRIVATE_BOT_MODE = getenv("PRIVATE_BOT_MODE", None)
 DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 100000))
 
 # Chat id of a group for logging bot's activities
-LOGGER_ID = int(getenv("LOGGER_ID", -1002385742084))
-GBAN_LOG_CHAT = int(getenv("GBAN_LOG_CHAT",  -1002385742084))
+LOGGER_ID = int(getenv("LOGGER_ID", )
+GBAN_LOG_CHAT = int(getenv("GBAN_LOG_CHAT",  ))
 # Get this value from @BRANDRD_ROBOT on Telegram by /id
 OWNER_ID = int(getenv("OWNER_ID", ""))
-SUDO_USERS = list(map(int, getenv("SUDO_USERS", "7487670897").split()))
+SUDO_USERS = list(map(int, getenv("SUDO_USERS", "").split()))
 
 ## Fill these variables if you're deploying on heroku.
 # Your heroku app name
@@ -39,15 +39,15 @@ HEROKU_API_KEY = getenv("HEROKU_API_KEY")
 
 UPSTREAM_REPO = getenv(
     "UPSTREAM_REPO",
-    "https://github.com/itzarjuna1/Dark-bot-infinityX",
+    "https://github.com/itzarjuna1/roshu",
 )
 UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
 GIT_TOKEN = getenv(
     "GIT_TOKEN", None
 )  # Fill this variable if your upstream repository is private
 
-SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/who_cares_qt")
-SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/Destiny_Infinity_Og")
+SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/dark_musictm")
+SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/cuties_logs")
 
 # Set this to True if you want the assistant to automatically leave chats after an interval
 AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", False))
