@@ -12,9 +12,9 @@ API_ID = int(os.getenv("API_ID", "23450648"))
 API_HASH = os.getenv("API_HASH", "177973c53d36a5db484cabfce1b9bf2f")
 
 # Get your token from @BotFather on Telegram.
-BOT_TOKEN = getenv("BOT_TOKEN","")
+BOT_TOKEN = os.getenv("BOT_TOKEN","")
 
-YOUTUBE_API_KEY = getenv("")
+YOUTUBE_API_KEY = os.getenv("")
 # OpenAI Token
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
@@ -26,19 +26,19 @@ PRIVATE_BOT_MODE = getenv("PRIVATE_BOT_MODE", None)
 DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 100000))
 
 # Chat id of a group for logging bot's activities
-LOGGER_ID = int(getenv("LOGGER_ID", -1003228624224))
+LOGGER_ID = int(os.getenv("LOGGER_ID", -1003228624224))
 
 # Get this value from @BRANDRD_ROBOT on Telegram by /id
-OWNER_ID = int(getenv("OWNER_ID", "7651303468"))
-SUDO_USERS = list(map(int, getenv("SUDO_USERS", "7487670897").split()))
+OWNER_ID = int(os.getenv("OWNER_ID", "7651303468"))
+SUDO_USERS = list(map(int, os.getenv("SUDO_USERS", "7487670897").split()))
 
 ## Fill these variables if you're deploying on heroku.
 # Your heroku app name
-HEROKU_APP_NAME = getenv("HEROKU_APP_NAME")
+HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
 # Get it from http://dashboard.heroku.com/account
-HEROKU_API_KEY = getenv("HEROKU_API_KEY")
+HEROKU_API_KEY = os.getenv("HEROKU_API_KEY")
 
-UPSTREAM_REPO = getenv(
+UPSTREAM_REPO = os.getenv(
     "UPSTREAM_REPO",
     "https://github.com/txkuze/snowy",
 )
@@ -47,44 +47,44 @@ GIT_TOKEN = getenv(
     "GIT_TOKEN", None
 )  # Fill this variable if your upstream repository is private
 
-SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/dark_musictm")
-SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/snowy_hometown")
+SUPPORT_CHANNEL = os.getenv("SUPPORT_CHANNEL", "https://t.me/dark_musictm")
+SUPPORT_CHAT = os.getenv("SUPPORT_CHAT", "https://t.me/snowy_hometown")
 
 # Set this to True if you want the assistant to automatically leave chats after an interval
-AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", False))
+AUTO_LEAVING_ASSISTANT = bool(os.getenv("AUTO_LEAVING_ASSISTANT", False))
 
 # Auto Gcast/Broadcast Handler (True = broadcast on , False = broadcast off During Hosting, Dont Do anything here.)
 AUTO_GCAST = os.getenv("AUTO_GCAST")
 
 # Auto Broadcast Message That You Want Use In Auto Broadcast In All Groups.
-AUTO_GCAST_MSG = getenv("AUTO_GCAST_MSG", "")
+AUTO_GCAST_MSG = os.getenv("AUTO_GCAST_MSG", "")
 
 # Get this credentials from https://developer.spotify.com/dashboard
-SPOTIFY_CLIENT_ID = getenv("SPOTIFY_CLIENT_ID", "6fb7e1766693439b86ec57e3deb3c36f")
-SPOTIFY_CLIENT_SECRET = getenv(
+SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID", "6fb7e1766693439b86ec57e3deb3c36f")
+SPOTIFY_CLIENT_SECRET = os.getenv(
     "SPOTIFY_CLIENT_SECRET", "da3f94c6a68d49f6b64a7216ec9eb905"
 )
 
 
 # Maximum limit for fetching playlist's track from youtube, spotify, apple links.
-SERVER_PLAYLIST_LIMIT = int(getenv("SERVER_PLAYLIST_LIMIT", "1000"))
-PLAYLIST_FETCH_LIMIT = int(getenv("PLAYLIST_FETCH_LIMIT", "1000"))
+SERVER_PLAYLIST_LIMIT = int(os.getenv("SERVER_PLAYLIST_LIMIT", "1000"))
+PLAYLIST_FETCH_LIMIT = int(os.getenv("PLAYLIST_FETCH_LIMIT", "1000"))
 
-SONG_DOWNLOAD_DURATION = int(getenv("SONG_DOWNLOAD_DURATION_LIMIT", "180"))
-SONG_DOWNLOAD_DURATION_LIMIT = int(getenv("SONG_DOWNLOAD_DURATION_LIMIT", "2000"))
+SONG_DOWNLOAD_DURATION = int(os.getenv("SONG_DOWNLOAD_DURATION_LIMIT", "180"))
+SONG_DOWNLOAD_DURATION_LIMIT = int(os.getenv("SONG_DOWNLOAD_DURATION_LIMIT", "2000"))
 
 # Telegram audio and video file size limit (in bytes)
-TG_AUDIO_FILESIZE_LIMIT = int(getenv("TG_AUDIO_FILESIZE_LIMIT", 104857600))
-TG_VIDEO_FILESIZE_LIMIT = int(getenv("TG_VIDEO_FILESIZE_LIMIT", 1073741824))
+TG_AUDIO_FILESIZE_LIMIT = int(os.getenv("TG_AUDIO_FILESIZE_LIMIT", 104857600))
+TG_VIDEO_FILESIZE_LIMIT = int(os.getenv("TG_VIDEO_FILESIZE_LIMIT", 1073741824))
 # Checkout https://www.gbmb.org/mb-to-bytes for converting mb to bytes
 
 
 # Get your pyrogram v2 session from @BRANDEDSTRINGSESSION_BOT on Telegram
-STRING1 = getenv("STRING_SESSION",  "")
-STRING2 = getenv("STRING_SESSION2", None)
-STRING3 = getenv("STRING_SESSION3", None)
-STRING4 = getenv("STRING_SESSION4", None)
-STRING5 = getenv("STRING_SESSION5", None)
+STRING1 = os.getenv("STRING_SESSION",  "")
+STRING2 = os.getenv("STRING_SESSION2", None)
+STRING3 = os.getenv("STRING_SESSION3", None)
+STRING4 = os.getenv("STRING_SESSION4", None)
+STRING5 = os.getenv("STRING_SESSION5", None)
 
 
 BANNED_USERS = filters.user()
@@ -96,8 +96,8 @@ autoclean = []
 confirmer = {}
 
 
-START_VIDEO_URL = getenv("START_VIDEO_URL", "https://files.catbox.moe/ys1wfm.mp4")
-PING_IMG_URL = getenv("PING_IMG_URL", "https://files.catbox.moe/0ehtgk.jpg")
+START_VIDEO_URL = os.getenv("START_VIDEO_URL", "https://files.catbox.moe/ys1wfm.mp4")
+PING_IMG_URL = os.getenv("PING_IMG_URL", "https://files.catbox.moe/0ehtgk.jpg")
 PLAYLIST_IMG_URL = "https://files.catbox.moe/2m6yep.jpg"
 STATS_IMG_URL = "https://files.catbox.moe/0ehtgk.jpg"
 TELEGRAM_AUDIO_URL = "https://files.catbox.moe/opavqw.jpg"
