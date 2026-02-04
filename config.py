@@ -19,11 +19,11 @@ YOUTUBE_API_KEY = os.getenv("")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Get your mongo url from cloud.mongodb.com
-MONGO_DB_URI = getenv("MONGO_DB_URI", "mongodb+srv://knight4563:knight4563@cluster0.a5br0se.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-MUSIC_BOT_NAME = getenv("MUSIC_BOT_NAME", "SNOWY_MUSIC")
-PRIVATE_BOT_MODE = getenv("PRIVATE_BOT_MODE", None)
+MONGO_DB_URI = os.getenv("MONGO_DB_URI", "mongodb+srv://knight4563:knight4563@cluster0.a5br0se.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+MUSIC_BOT_NAME = os.getenv("MUSIC_BOT_NAME", "SNOWY_MUSIC")
+PRIVATE_BOT_MODE = os.getenv("PRIVATE_BOT_MODE", None)
 
-DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 100000))
+DURATION_LIMIT_MIN = int(os.getenv("DURATION_LIMIT", 100000))
 
 # Chat id of a group for logging bot's activities
 LOGGER_ID = int(os.getenv("LOGGER_ID", -1003228624224))
@@ -42,8 +42,8 @@ UPSTREAM_REPO = os.getenv(
     "UPSTREAM_REPO",
     "https://github.com/txkuze/snowy",
 )
-UPSTREAM_BRANCH = getenv("UPSTREAM_BRANCH", "main")
-GIT_TOKEN = getenv(
+UPSTREAM_BRANCH = os.getenv("UPSTREAM_BRANCH", "main")
+GIT_TOKEN = os.getenv(
     "GIT_TOKEN", None
 )  # Fill this variable if your upstream repository is private
 
