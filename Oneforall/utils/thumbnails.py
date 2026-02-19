@@ -127,8 +127,8 @@ async def get_thumb(videoid):
 
         # ===== TEXT =====
         try:
-            title_font = ImageFont.truetype("Tune/assets/font.ttf", 42)
-            small_font = ImageFont.truetype("Tune/assets/font2.ttf", 28)
+            title_font = ImageFont.truetype("Oneforall/assets/font.ttf", 42)
+            small_font = ImageFont.truetype("Oneforall/assets/font2.ttf", 28)
         except:
             title_font = small_font = ImageFont.load_default()
 
