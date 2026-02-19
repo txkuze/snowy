@@ -1,3 +1,4 @@
+import asyncio
 import random
 import string
 
@@ -394,9 +395,9 @@ async def play_commnd(
             await mystic.delete()
             await message.reply_photo(
                 photo=img,
+                has_spoiler=True,
                 caption=cap,
                 reply_markup=InlineKeyboardMarkup(buttons),
-                has_spoiler=True,
             )
             return await play_logs(message, streamtype=f"Playlist : {plist_type}")
         else:
@@ -432,9 +433,9 @@ async def play_commnd(
                 await mystic.delete()
                 await message.reply_photo(
                     photo=img,
+                    has_spoiler=True,
                     caption=cap,
                     reply_markup=InlineKeyboardMarkup(buttons),
-                    has_spoiler=True,
                 )
                 return await play_logs(message, streamtype=f"URL Searched Inline")
 
