@@ -1,3 +1,4 @@
+import os
 import re
 from datetime import datetime, timedelta
 
@@ -5,48 +6,60 @@ from pyrogram import Client, filters
 from pyrogram.types import Message, ChatPermissions
 from pyrogram.errors import ChatAdminRequired
 
-# ==============================
-# ⚠️ WARNING STORAGE (memory)
-# ==============================
-
-WARNINGS = {}
+from openai import AsyncOpenAI
 
 # ==============================
-# 🔞 BAD WORDS LIST
+# 🔑 OPENAI KEY
 # ==============================
 
-BAD_WORDS = [
-    "porn","masterstock","bchenchod","madarchod","bhenchod","bhenshok",
-    "bhenstok","master","pussy","randi","bund","chut","dick","fuck",
-    "gand","loda","nunu","lop","pom","bc","mc","maderchod",
-    "motherfucker","bhosadike","betichod","chunni","chinaal",
-    "chudai khana","chudan chuda","chut ka pujari","chut ka bhoot",
-    "gaand ka makhan","gaand main lassan","gaand main danda",
-    "gaand main keera","gaand mein bambu","gaandfat",
-    "pote kitne bhi bade ho","lund ke niche hi rehte hai",
-    "hazaar lund teri gaand main","jhat ke baal","jhaant ke pissu",
-    "kadak mall","kali choot ke safaid jhaat","khotey ki aulda",
-    "kutte ka awlat","kutte ki jat","kutte ke tatte","kutte ke poot",
-    "teri maa ki choot","lavde ke bal","lund chus","lund ke pasine",
-    "meri gand ka khatmal","moot","mootna","najayaz paidaish",
-    "rundi khana","sadi hui gaand","teri gaand main kute ka lund",
-    "teri maa ka bhosda","teri maa ki chut",
-    "tere gaand mein keede paday",
-    "banall","/banall",".banall",
-    "bio","join my bio","join bio","join links from my bio"
-]
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY not found")
+
+ai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
 # ==============================
-# 🔎 TEXT NORMALIZER
+# ⚠️ WARNING STORAGE (PER GROUP)
 # ==============================
 
-def contains_bad_word(text: str):
+WARNINGS = {}  # {(chat_id, user_id): count}
+
+# ==============================
+# 🔗 LINK DETECTION
+# ==============================
+
+def contains_link(text: str):
     text = text.lower()
-    for word in BAD_WORDS:
-        pattern = r"\b" + re.escape(word) + r"\b"
-        if re.search(pattern, text):
-            return True
+
+    if re.search(r'https?://', text):
+        return True
+
+    if "t.me/" in text:
+        return True
+
+    if re.search(r'@\w{4,}', text):
+        return True
+
     return False
+
+# ==============================
+# 🤖 AI MODERATION (FIXED)
+# ==============================
+
+async def ai_moderation_check(text: str):
+    try:
+        response = await ai_client.moderations.create(
+            model="omni-moderation-latest",
+            input=text
+        )
+
+        # New SDK structure
+        flagged = response.results[0].flagged
+        return flagged
+
+    except Exception as e:
+        print("AI Moderation Error:", e)
+        return False
 
 # ==============================
 # 🛡 REGISTER FUNCTION
@@ -54,53 +67,99 @@ def contains_bad_word(text: str):
 
 def register_badwords_guard(app: Client):
 
+    # --------------------------
+    # /free command
+    # --------------------------
+    @app.on_message(filters.command("free") & filters.group)
+    async def free_user(client: Client, message: Message):
+
+        if not await is_admin(client, message.chat.id, message.from_user.id):
+            return await message.reply_text("❌ Admin only command.")
+
+        if not message.reply_to_message:
+            return await message.reply_text("Reply to a user to free them.")
+
+        target_id = message.reply_to_message.from_user.id
+        chat_id = message.chat.id
+
+        FREE_USERS.setdefault(chat_id, set()).add(target_id)
+
+        await message.reply_text("✅ User is now exempt from bad word filter.")
+
+
+    # --------------------------
+    # /unfree command
+    # --------------------------
+    @app.on_message(filters.command("unfree") & filters.group)
+    async def unfree_user(client: Client, message: Message):
+
+        if not await is_admin(client, message.chat.id, message.from_user.id):
+            return await message.reply_text("❌ Admin only command.")
+
+        if not message.reply_to_message:
+            return await message.reply_text("Reply to a user to remove exemption.")
+
+        target_id = message.reply_to_message.from_user.id
+        chat_id = message.chat.id
+
+        if chat_id in FREE_USERS:
+            FREE_USERS[chat_id].discard(target_id)
+
+        await message.reply_text("🚫 User is no longer exempt.")
+
+
+    # --------------------------
+    # MAIN FILTER
+    # --------------------------
     @app.on_message(filters.text & filters.group)
     async def badword_handler(client: Client, message: Message):
 
-        if not message.text:
+        if not message.text or not message.from_user:
             return
 
-        user_id = message.from_user.id
         chat_id = message.chat.id
+        user_id = message.from_user.id
 
-        # Skip admins safely (no enum import)
-        member = await client.get_chat_member(chat_id, user_id)
-        if member.status in ["administrator", "creator"]:
+        # Skip admins
+        if await is_admin(client, chat_id, user_id):
             return
 
+        # Skip freed users
+        if user_id in FREE_USERS.get(chat_id, set()):
+            return
+
+        # Check bad words
         if not contains_bad_word(message.text):
             return
 
         # Delete message
         try:
-            await message.delete()
-        except:
-            pass
+            await client.delete_messages(chat_id, message.id)
+        except Exception as e:
+            print("Delete Error:", e)
 
-        # Increase warning
-        WARNINGS[user_id] = WARNINGS.get(user_id, 0) + 1
-        warn_count = WARNINGS[user_id]
+        # Warning system
+        key = (chat_id, user_id)
+        WARNINGS[key] = WARNINGS.get(key, 0) + 1
+        warn_count = WARNINGS[key]
 
         try:
-            # 1️⃣ Warn
             if warn_count == 1:
                 await message.reply_text(
                     "⚠️ Warning 1/3\nAbusive language detected."
                 )
 
-            # 2️⃣ Mute
             elif warn_count == 2:
                 await client.restrict_chat_member(
                     chat_id,
                     user_id,
                     ChatPermissions(),
-                    until_date=datetime.now() + timedelta(minutes=15)
+                    until_date=datetime.utcnow() + timedelta(minutes=15)
                 )
                 await message.reply_text(
-                    "🔇 Warning 2/3\nUser muted for 15 minutes."
+                    "🔇 Warning 2/3\nMuted for 15 minutes."
                 )
 
-            # 3️⃣ Ban
             else:
                 await client.ban_chat_member(chat_id, user_id)
                 await message.reply_text(
@@ -109,5 +168,5 @@ def register_badwords_guard(app: Client):
 
         except ChatAdminRequired:
             await message.reply_text(
-                "❌ I need ban & restrict permissions to take action."
+                "❌ I need admin permissions to take action."
             )
