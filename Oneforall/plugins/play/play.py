@@ -7,7 +7,7 @@ from pyrogram.types import InlineKeyboardMarkup, InputMediaPhoto, Message
 from pytgcalls.exceptions import NoActiveGroupCall
 
 import config
-from config import BANNED_USERS, lyrical
+from config import BANNED_USERS, YOUTUBE_IMG_URL, lyrical
 from Oneforall import Apple, Resso, SoundCloud, Spotify, Telegram, YouTube, app
 from Oneforall.core.call import Hotty
 from Oneforall.utils import seconds_to_min, time_to_seconds
