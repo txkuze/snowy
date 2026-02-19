@@ -394,7 +394,7 @@ async def play_commnd(
             )
             await mystic.delete()
             await message.reply_photo(
-                photo= config.YOUTUBE_IMG_URL
+                photo= config.YOUTUBE_IMG_URL,
                 has_spoiler=True,
                 caption=cap,
                 reply_markup=InlineKeyboardMarkup(buttons),
@@ -413,7 +413,7 @@ async def play_commnd(
                 )
                 await mystic.delete()
                 await message.reply_photo(
-                    photo= config.YOUTUBE_IMG_URL
+                    photo= config.YOUTUBE_IMG_URL,
                     caption=_["play_10"].format(
                         details["title"].title(),
                         details["duration_min"],
@@ -432,7 +432,7 @@ async def play_commnd(
                 )
                 await mystic.delete()
                 await message.reply_photo(
-                    photo=img,
+                    photo= config.YOUTUBE_IMG_URL,
                     has_spoiler=True,
                     caption=cap,
                     reply_markup=InlineKeyboardMarkup(buttons),
