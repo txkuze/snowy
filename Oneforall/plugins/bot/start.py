@@ -42,11 +42,11 @@ async def start_pm(client, message: Message, _):
      
     accha = await message.reply_text(text=random.choice(EMOJIOS))
     await asyncio.sleep(1.3)
-    await accha.edit("🏓fairy..ᴍᴇᴇɴʏ..ᴍɪɴʏ..ᴍᴏᴇ✨")
+    await accha.edit("🏓..ᴍᴇᴇɴʏ..ᴍɪɴʏ..ᴍᴏᴇ✨")
     await asyncio.sleep(0.2)
-    await accha.edit("__fairy..ᴍᴇᴇɴʏ ꨄ sтαятιиg.....__")
+    await accha.edit("_.ᴍᴇᴇɴʏ__ ꨄ︎ sтαятιиg..__")
     await asyncio.sleep(0.2)
-    await accha.edit("__ ꨄ︎ sтαятιиg..__")
+    await accha.edit("__.ʜєʟʟσ ʜσω ᴧʀє ʏσᴜ 🩷 .__")
     await asyncio.sleep(0.2)
     await accha.delete()
 
