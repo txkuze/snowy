@@ -23,7 +23,7 @@ ai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
 # ==============================
 
 WARNINGS = {}  # {(chat_id, user_id): count}
-
+FREE_USERS = {}
 # ==============================
 # 🔗 LINK DETECTION
 # ==============================
