@@ -1,4 +1,5 @@
 import os
+import random
 import re
 from os import getenv
 
@@ -95,8 +96,6 @@ votemode = {}
 autoclean = []
 confirmer = {}
 
-
-START_IMG_URL = os.getenv("START_IMG_URL", "https://files.catbox.moe/nndfm5.jpg","https://files.catbox.moe/2pan2i.jpg","https://files.catbox.moe/uyps1d.jpg")
 PING_IMG_URL = os.getenv("PING_IMG_URL", "https://files.catbox.moe/nndfm5.jpg")
 PLAYLIST_IMG_URL = "https://files.catbox.moe/nndfm5.jpg"
 STATS_IMG_URL = "https://files.catbox.moe/bn1lww.jpg"
@@ -109,7 +108,17 @@ SPOTIFY_ARTIST_IMG_URL = "https://files.catbox.moe/0ehtgk.jpg"
 SPOTIFY_ALBUM_IMG_URL = "https://files.catbox.moe/opavqw.jpg"
 SPOTIFY_PLAYLIST_IMG_URL = "https://files.catbox.moe/0ehtgk.jpg"
 
+START_IMG_URL = os.getenv("START_IMG_URL")
 
+if START_IMG_URL:
+    START_IMG_URL = random.choice(START_IMG_URL.split(","))
+else:
+    START_IMG_URL = random.choice([
+        "https://files.catbox.moe/nndfm5.jpg",
+        "https://files.catbox.moe/2pan2i.jpg",
+        "https://files.catbox.moe/uyps1d.jpg"
+    ])
+    
 def time_to_seconds(time):
     stringt = str(time)
     return sum(int(x) * 60**i for i, x in enumerate(reversed(stringt.split(":"))))
