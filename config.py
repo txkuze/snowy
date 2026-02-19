@@ -96,7 +96,7 @@ autoclean = []
 confirmer = {}
 
 
-START_VIDEO_URL = os.getenv("START_VIDEO_URL", "https://files.catbox.moe/ys1wfm.mp4")
+START_IMG_URL = os.getenv("START_IMG_URL", "https://files.catbox.moe/nndfm5.jpg","https://files.catbox.moe/2pan2i.jpg","https://files.catbox.moe/uyps1d.jpg")
 PING_IMG_URL = os.getenv("PING_IMG_URL", "https://files.catbox.moe/0ehtgk.jpg")
 PLAYLIST_IMG_URL = "https://files.catbox.moe/2m6yep.jpg"
 STATS_IMG_URL = "https://files.catbox.moe/0ehtgk.jpg"
