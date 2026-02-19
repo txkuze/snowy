@@ -394,7 +394,7 @@ async def play_commnd(
             )
             await mystic.delete()
             await message.reply_photo(
-                photo=
+                photo= config.YOUTUBE_IMG_URL
                 has_spoiler=True,
                 caption=cap,
                 reply_markup=InlineKeyboardMarkup(buttons),
