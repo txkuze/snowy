@@ -32,6 +32,7 @@ youtube_search
 youtube-search-python
 googlesearch-python
 unidecode
+openai
 bing_image_downloader
 gpytranslate
 git+https://github.com/KurimuzonAkuma/pyrogram.git@v2.1.23
