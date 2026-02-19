@@ -1,133 +1,293 @@
-# tictactoe.py
-from Oneforall import *
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from collections import defaultdict
+import random
+from pyrogram import filters
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
+from Oneforall import app
+from Oneforall.core.mongo import mongodb
 
-# ========== STORAGE ==========
-games = {}  # {chat_id: game_data}
-leaderboards = defaultdict(lambda: defaultdict(int))  # leaderboards[chat_id][user_id] = wins
+games = {}
+db = mongodb.xoxo_leaderboard
 
-# ========== START COMMAND ==========
-@Client.on_message(command("tictac") & filters.group)
-async def start_tictactoe(client, message):
-    chat_id = message.chat.id
-    if chat_id in games:
-        return await message.reply("A Tic Tac Toe game is already running!")
+EMPTY = "⬜"
+X = "❌"
+O = "⭕"
 
-    games[chat_id] = {
-        "players": [],
-        "board": [""] * 9,
-        "turn": 0,
-        "started": False
-    }
+WIN = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+]
 
-    keyboard = InlineKeyboardMarkup(
-        [[InlineKeyboardButton("✅ Join Game", callback_data="tictac_join")]]
-    )
-    await message.reply("🎮 Tic Tac Toe started! Click ✅ Join Game to participate (2 players required).", reply_markup=keyboard)
+# ───── HELPERS ─────
 
-# ========== CALLBACKS ==========
-@Client.on_callback_query(filters.regex("^tictac_"))
-async def tictactoe_callbacks(client, callback_query):
-    chat_id = callback_query.message.chat.id
-    user = callback_query.from_user
-    data = callback_query.data
-
-    if chat_id not in games:
-        return await callback_query.answer("No game running.", show_alert=True)
-
-    game = games[chat_id]
-
-    # --- JOIN GAME ---
-    if data == "tictac_join":
-        if user.id in [p.id for p in game["players"]]:
-            return await callback_query.answer("You already joined!", show_alert=True)
-        if len(game["players"]) >= 2:
-            return await callback_query.answer("Game is full!", show_alert=True)
-
-        game["players"].append(user)
-        await callback_query.answer(f"{user.first_name} joined!")
-
-        if len(game["players"]) == 2:
-            game["started"] = True
-            await send_tictac_board(client, chat_id, callback_query.message)
-        else:
-            await callback_query.message.edit_text(f"Tic Tac Toe waiting for players...\n1/2 joined.", reply_markup=callback_query.message.reply_markup)
-        return
-
-    # --- MAKE MOVE ---
-    if data.startswith("tictac_move:"):
-        if not game["started"]:
-            return await callback_query.answer("Game hasn't started yet.", show_alert=True)
-
-        pos = int(data.split(":")[1])
-        player_turn = game["players"][game["turn"] % 2]
-        if user.id != player_turn.id:
-            return await callback_query.answer("Not your turn!", show_alert=True)
-        if game["board"][pos] != "":
-            return await callback_query.answer("Cell already taken!", show_alert=True)
-
-        mark = "❌" if game["turn"] % 2 == 0 else "⭕"
-        game["board"][pos] = mark
-        game["turn"] += 1
-
-        winner = check_winner(game["board"])
-        if winner:
-            text = f"{winner} wins! 🏆"
-            if winner == "❌":
-                leaderboards[chat_id][game["players"][0].id] += 1
-            else:
-                leaderboards[chat_id][game["players"][1].id] += 1
-            await callback_query.message.edit_text(render_board(game["board"]) + "\n\n" + text, reply_markup=None)
-            del games[chat_id]
-        elif "" not in game["board"]:
-            await callback_query.message.edit_text(render_board(game["board"]) + "\n\nIt's a draw!", reply_markup=None)
-            del games[chat_id]
-        else:
-            await send_tictac_board(client, chat_id, callback_query.message)
-        return
-
-# ========== RENDER BOARD ==========
-def render_board(board):
-    def cell_text(i):
-        return board[i] if board[i] != "" else "▫️"
-    return "\n".join([" | ".join([cell_text(j) for j in range(i, i+3)]) for i in range(0,9,3)])
-
-async def send_tictac_board(client, chat_id, message):
-    game = games[chat_id]
-    keyboard = []
-    for i in range(0, 9, 3):
-        row = []
-        for j in range(3):
-            idx = i+j
-            text = game["board"][idx] if game["board"][idx] != "" else "▫️"
-            row.append(InlineKeyboardButton(text, callback_data=f"tictac_move:{idx}"))
-        keyboard.append(row)
-    board_markup = InlineKeyboardMarkup(keyboard)
-    player_turn = game["players"][game["turn"] % 2]
-    await message.edit_text(f"Tic Tac Toe - {player_turn.first_name}'s turn\n\n" + render_board(game["board"]), reply_markup=board_markup)
-
-# ========== CHECK WINNER ==========
-def check_winner(b):
-    wins = [
-        [0,1,2],[3,4,5],[6,7,8],
-        [0,3,6],[1,4,7],[2,5,8],
-        [0,4,8],[2,4,6]
-    ]
-    for w in wins:
-        if b[w[0]] != "" and b[w[0]] == b[w[1]] == b[w[2]]:
-            return b[w[0]]
+def check(board):
+    for a,b,c in WIN:
+        if board[a] == board[b] == board[c] != EMPTY:
+            return board[a]
+    if EMPTY not in board:
+        return "draw"
     return None
 
-# ========== LEADERBOARD ==========
-@Client.on_message(command("ticlead") & filters.group)
-async def tictac_leaderboard(client, message):
-    chat_id = message.chat.id
-    if chat_id not in leaderboards or not leaderboards[chat_id]:
-        return await message.reply("No games played yet!")
+def init_game(gid, user):
+    games[gid] = {
+        "board": [EMPTY]*9,
+        "p1": user.id,
+        "p1_name": user.first_name,
+        "p2": None,
+        "p2_name": None,
+        "turn": X,
+        "mode": None,
+        "finished": False
+    }
 
-    text = "🏆 Tic Tac Toe Leaderboard 🏆\n\n"
-    sorted_players = sorted(leaderboards[chat_id].items(), key=lambda x: x[1], reverse=True)
-    for idx, (user_id, wins) in enumerate(sorted_players[:10], 1):
-        text += f"{idx}. [User](tg://user?id={user_id}) - {wins} wins\n"
-    await message.reply(text, disable_web_page_preview=True)
+def is_player(g, uid):
+    return uid in (g["p1"], g["p2"])
+
+def board_kb(gid, board):
+    rows = []
+    for i in range(0,9,3):
+        rows.append([
+            InlineKeyboardButton(board[i], callback_data=f"xoxo:{gid}:{i}"),
+            InlineKeyboardButton(board[i+1], callback_data=f"xoxo:{gid}:{i+1}"),
+            InlineKeyboardButton(board[i+2], callback_data=f"xoxo:{gid}:{i+2}")
+        ])
+    rows.append([
+        InlineKeyboardButton("🔁 Rematch", callback_data=f"xoxo_rematch:{gid}"),
+        InlineKeyboardButton("🛑 End Game", callback_data=f"xoxo_end:{gid}")
+    ])
+    return InlineKeyboardMarkup(rows)
+
+def bot_move(board):
+    for i in range(9):
+        if board[i] == EMPTY:
+            board[i] = O
+            if check(board) == O:
+                board[i] = EMPTY
+                return i
+            board[i] = EMPTY
+    for i in range(9):
+        if board[i] == EMPTY:
+            board[i] = X
+            if check(board) == X:
+                board[i] = EMPTY
+                return i
+            board[i] = EMPTY
+    if board[4] == EMPTY:
+        return 4
+    return random.choice([i for i in range(9) if board[i] == EMPTY])
+
+async def add_win(uid, name):
+    if uid:
+        await db.update_one(
+            {"user_id": uid},
+            {"$inc": {"wins": 1}, "$set": {"name": name}},
+            upsert=True
+        )
+
+# ───── /game ─────
+
+@app.on_message(filters.command("game"))
+async def game_menu(_, m):
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton("❌⭕ Tic Tac Toe", callback_data="game_xoxo")]
+    ])
+    await m.reply("🎮 <b>Game Center</b>\n\nChoose a game:", reply_markup=kb)
+
+@app.on_callback_query(filters.regex("^game_xoxo$"))
+async def game_xoxo(_, q: CallbackQuery):
+    if q.message.chat.id in games:
+        return await q.answer("⚠️ Game already running!", show_alert=True)
+
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton("👥 Play with Friend", callback_data="xoxo_friend")],
+        [InlineKeyboardButton("🤖 Play with Bot", callback_data="xoxo_bot")]
+    ])
+    await q.message.edit_text("❌⭕ <b>Tic Tac Toe</b>\n\nChoose mode:", reply_markup=kb)
+
+# ───── FRIEND MODE ─────
+
+@app.on_callback_query(filters.regex("^xoxo_friend$"))
+async def friend_mode(_, q: CallbackQuery):
+    init_game(q.message.chat.id, q.from_user)
+    kb = InlineKeyboardMarkup([
+        [InlineKeyboardButton("👥 Join Game", callback_data=f"xoxo_join:{q.message.chat.id}")]
+    ])
+    await q.message.edit_text(
+        f"❌⭕ <b>Tic Tac Toe</b>\n\n"
+        f"👤 Player 1: <b>{q.from_user.first_name}</b>\n"
+        f"⏳ Waiting for Player 2…",
+        reply_markup=kb
+    )
+
+# ───── BOT MODE ─────
+
+@app.on_callback_query(filters.regex("^xoxo_bot$"))
+async def bot_mode(_, q: CallbackQuery):
+    init_game(q.message.chat.id, q.from_user)
+    g = games[q.message.chat.id]
+    g["mode"] = "bot"
+    g["p2_name"] = "Bot 🤖"
+
+    await q.message.edit_text(
+        f"🤖 <b>Bot Mode</b>\n\n"
+        f"❌ {g['p1_name']}\n"
+        f"⭕ Bot 🤖\n\n"
+        f"🔄 <b>Your Turn</b>",
+        reply_markup=board_kb(q.message.chat.id, g["board"])
+    )
+
+# ───── JOIN FRIEND ─────
+
+@app.on_callback_query(filters.regex("^xoxo_join"))
+async def join_friend(_, q: CallbackQuery):
+    gid = int(q.data.split(":")[1])
+    g = games.get(gid)
+    if not g or q.from_user.id == g["p1"]:
+        return
+
+    g["p2"] = q.from_user.id
+    g["p2_name"] = q.from_user.first_name
+    g["mode"] = "friend"
+
+    await q.message.edit_text(
+        f"🎮 <b>Game Started!</b>\n\n"
+        f"❌ {g['p1_name']}\n"
+        f"⭕ {g['p2_name']}\n\n"
+        f"🔄 <b>Turn: ❌</b>",
+        reply_markup=board_kb(gid, g["board"])
+    )
+
+# ───── MOVE (REMATCH SAFE) ─────
+
+@app.on_callback_query(filters.regex("^xoxo:"))
+async def move(_, q: CallbackQuery):
+    _, gid, pos = q.data.split(":")
+    gid, pos = int(gid), int(pos)
+    g = games.get(gid)
+
+    if not g or g["finished"] or not is_player(g, q.from_user.id):
+        return
+    if g["board"][pos] != EMPTY:
+        return
+
+    uid = q.from_user.id
+
+    # FRIEND MODE
+    if g["mode"] == "friend":
+        if g["turn"] == X and uid != g["p1"]:
+            return
+        if g["turn"] == O and uid != g["p2"]:
+            return
+
+        g["board"][pos] = g["turn"]
+        res = check(g["board"])
+
+        if res in (X, O):
+            g["finished"] = True
+            winner_id = g["p1"] if res == X else g["p2"]
+            winner_name = g["p1_name"] if res == X else g["p2_name"]
+            await add_win(winner_id, winner_name)
+            return await q.message.edit_text(
+                f"🏆 <b>{winner_name} Wins!</b>",
+                reply_markup=board_kb(gid, g["board"])
+            )
+
+        if res == "draw":
+            g["finished"] = True
+            return await q.message.edit_text(
+                "🤝 <b>Match Draw!</b>",
+                reply_markup=board_kb(gid, g["board"])
+            )
+
+        g["turn"] = O if g["turn"] == X else X
+
+    # BOT MODE
+    else:
+        if uid != g["p1"]:
+            return
+
+        g["board"][pos] = X
+        res = check(g["board"])
+
+        if res == X:
+            g["finished"] = True
+            await add_win(g["p1"], g["p1_name"])
+            return await q.message.edit_text(
+                f"🏆 <b>{g['p1_name']} Wins!</b>",
+                reply_markup=board_kb(gid, g["board"])
+            )
+
+        if res == "draw":
+            g["finished"] = True
+            return await q.message.edit_text(
+                "🤝 <b>Match Draw!</b>",
+                reply_markup=board_kb(gid, g["board"])
+            )
+
+        # BOT MOVE
+        b = bot_move(g["board"])
+        g["board"][b] = O
+        res = check(g["board"])
+
+        if res == O:
+            g["finished"] = True
+            return await q.message.edit_text(
+                "🤖 <b>Bot Wins!</b>",
+                reply_markup=board_kb(gid, g["board"])
+            )
+
+    await q.message.edit_text(
+        f"❌ {g['p1_name']}\n⭕ {g['p2_name']}\n\n🔄 <b>Turn:</b> {g['turn']}",
+        reply_markup=board_kb(gid, g["board"])
+    )
+
+# ───── REMATCH ─────
+
+@app.on_callback_query(filters.regex("^xoxo_rematch:"))
+async def rematch(_, q: CallbackQuery):
+    gid = int(q.data.split(":")[1])
+    g = games.get(gid)
+
+    if not g or q.from_user.id not in (g["p1"], g["p2"]):
+        return await q.answer("❌ Not allowed", show_alert=True)
+
+    g["board"] = [EMPTY]*9
+    g["turn"] = X
+    g["finished"] = False
+
+    await q.message.edit_text(
+        f"🔁 <b>Rematch Started!</b>\n\n"
+        f"❌ {g['p1_name']}\n"
+        f"⭕ {g['p2_name']}\n\n"
+        f"🔄 <b>Turn: ❌</b>",
+        reply_markup=board_kb(gid, g["board"])
+    )
+
+# ───── END GAME ─────
+
+@app.on_callback_query(filters.regex("^xoxo_end"))
+async def end_game(_, q: CallbackQuery):
+    games.pop(int(q.data.split(":")[1]), None)
+    await q.message.edit_text("🛑 <b>Game Ended</b>")
+
+# ───── FORCE END CMD ─────
+
+@app.on_message(filters.command("endxoxo"))
+async def endxoxo(_, m):
+    g = games.get(m.chat.id)
+    if not g:
+        return await m.reply("❌ No active game.")
+    if m.from_user.id not in (g["p1"], g["p2"]):
+        return await m.reply("❌ You are not part of this game.")
+    games.pop(m.chat.id)
+    await m.reply("🛑 <b>Game Force Ended</b>")
+
+# ───── LEADERBOARD ─────
+
+@app.on_message(filters.command("xoxotop"))
+async def leaderboard(_, m):
+    text = "🏆 <b>XOXO Leaderboard</b>\n\n"
+    i = 1
+    async for u in db.find().sort("wins", -1).limit(10):
+        text += f"{i}. <b>{u.get('name','Player')}</b> — {u['wins']} wins\n"
+        i += 1
+    await m.reply(text)
