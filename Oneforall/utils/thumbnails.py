@@ -7,7 +7,6 @@ import aiohttp
 from PIL import (
     Image,
     ImageEnhance,
-    ImageOps,
     ImageDraw,
     ImageFont,
     ImageFilter,
@@ -15,6 +14,13 @@ from PIL import (
 from youtubesearchpython.__future__ import VideosSearch
 
 from config import YOUTUBE_IMG_URL
+
+
+BAD_WORDS = [
+    "sex", "xxx", "porn", "nude", "18+",
+    "drugs", "cocaine", "weed", "ganja",
+    "adult", "explicit"
+]
 
 
 def changeImageSize(maxWidth, maxHeight, image):
@@ -30,6 +36,11 @@ def clear(text):
     return title.strip()
 
 
+def is_unsafe(text: str):
+    text = text.lower()
+    return any(word in text for word in BAD_WORDS)
+
+
 async def get_thumb(videoid):
     final = f"cache/{videoid}.png"
     temp = f"cache/thumb{videoid}.png"
@@ -38,24 +49,41 @@ async def get_thumb(videoid):
         return final
 
     try:
+        # 🔐 STRICT SAFE SEARCH ENABLED
         search = VideosSearch(
-            f"https://www.youtube.com/watch?v={videoid}", limit=1
+            f"https://www.youtube.com/watch?v={videoid}",
+            limit=1,
+            safeSearch="strict"
         )
+
         result = (await search.next())["result"][0]
 
-        title = clear(
-            re.sub(r"\W+", " ", result.get("title", "Unsupported Title")).title()
-        )
+        title_raw = result.get("title", "Unsupported Title")
         duration = result.get("duration", "LIVE")
         channel = result.get("channel", {}).get("name", "Unknown Channel")
         thumbnail = result["thumbnails"][-1]["url"].split("?")[0]
 
+        # 🔴 AGE RESTRICTED CHECK
+        if result.get("age", "") == "18+":
+            print("Blocked age restricted content")
+            return YOUTUBE_IMG_URL
+
+        # 🔴 BAD WORD FILTER
+        if is_unsafe(title_raw) or is_unsafe(channel):
+            print("Blocked unsafe content:", title_raw)
+            return YOUTUBE_IMG_URL
+
+        title = clear(
+            re.sub(r"\W+", " ", title_raw).title()
+        )
+
         # download thumbnail
         async with aiohttp.ClientSession() as session:
             async with session.get(thumbnail) as resp:
-                if resp.status == 200:
-                    async with aiofiles.open(temp, "wb") as f:
-                        await f.write(await resp.read())
+                if resp.status != 200:
+                    return YOUTUBE_IMG_URL
+                async with aiofiles.open(temp, "wb") as f:
+                    await f.write(await resp.read())
 
         base = Image.open(temp).convert("RGB")
 
@@ -73,9 +101,7 @@ async def get_thumb(videoid):
 
         mask = Image.new("L", fg.size, 0)
         mdraw = ImageDraw.Draw(mask)
-        mdraw.rounded_rectangle(
-            [(0, 0), fg.size], radius=30, fill=255
-        )
+        mdraw.rounded_rectangle([(0, 0), fg.size], radius=30, fill=255)
 
         card = Image.new("RGBA", fg.size)
         card.paste(fg, (0, 0), mask)
@@ -121,7 +147,7 @@ async def get_thumb(videoid):
         )
 
         # ===== POWERED BY =====
-        power = "˹ ROSHNI MUSIC "
+        power = "˹ ROSHNI MUSIC ˼"
         pw = draw.textlength(power, small_font)
         px = (1280 - pw) // 2
 
