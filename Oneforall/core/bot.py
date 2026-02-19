@@ -28,7 +28,7 @@ class Hotty(Client):
         try:
             await self.send_message(
                 chat_id=config.LOGGER_ID,
-                text=f"<u><b>» {self.mention} ʙᴏᴛ sᴛᴀʀᴛᴇᴅ :</b><u>\n\nɪᴅ : <code>{self.id}</code>\nɴᴀᴍᴇ : {self.name}\nᴜsᴇʀɴᴀᴍᴇ : @{self.username}",
+                text = f"╭━━━〔 🚀✨ ʙᴏᴛ ɪꜱ ησω ʟɪᴠє ✨🚀 〕━━━╮\n\n│ 🤖 <b>ʙσᴛ ᴅєᴛᴧɪʟꜱ</b>\n│\n│ 🆔 <b>ɪᴅ :</b> <code>{self.id}</code>\n│ 👤 <b>ηᴧϻє :</b> {self.name}\n│ 🔗 <b>ᴜꜱєʀηᴧϻє :</b> @{self.username}\n│\n│ ⚡ <b>ᴘσᴡєʀєᴅ ʙʏ ➜ ɪηꜰɪηɪᴛʏ ʙσᴛꜱ 💎</b>\n\n╰━━━━━━━━━━━━━━━━━━━━━━━━━━━━╯"
             )
         except (errors.ChannelInvalid, errors.PeerIdInvalid):
             LOGGER(__name__).error(
