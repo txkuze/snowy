@@ -5,7 +5,7 @@ from pyrogram.types import (
 )
 from youtubesearchpython.__future__ import VideosSearch
 
-from config import BANNED_USERS
+from config import BANNED_USERS, YOUTUBE_IMG_URL
 from Oneforall import app
 
 
@@ -35,8 +35,8 @@ async def inline_query_handler(client, query):
                 [
                     [
                         InlineKeyboardButton(
-                            text="ʏᴏᴜᴛᴜʙᴇ 🎄",
-                            url=link,
+                            text="˹ ɪɴꜰɪɴɪᴛʏ ✘ ɴᴇᴛᴡᴏʀᴋ˼ 🎧",
+                            url="https://t.me/dark_musictm",
                         )
                     ],
                 ]
@@ -53,9 +53,8 @@ async def inline_query_handler(client, query):
 <u><b>➻ ɪɴʟɪɴᴇ sᴇᴀʀᴄʜ ᴍᴏᴅᴇ ʙʏ {app.name}</b></u>"""
             answers.append(
                 InlineQueryResultPhoto(
-                    photo_url=thumbnail,
+                    photo= config.YOUTUBE_IMG_URL
                     title=title,
-                    thumb_url=thumbnail,
                     description=description,
                     caption=searched_text,
                     reply_markup=buttons,
