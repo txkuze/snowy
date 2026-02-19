@@ -2,8 +2,7 @@ import re
 from datetime import datetime, timedelta
 
 from pyrogram import Client, filters
-from pyrogram.types import Message
-from pyrogram.types import ChatMemberStatus, ChatPermissions
+from pyrogram.types import Message, ChatPermissions
 from pyrogram.errors import ChatAdminRequired
 
 # ==============================
@@ -41,75 +40,35 @@ BAD_WORDS = [
 # 🔎 TEXT NORMALIZER
 # ==============================
 
-def normalize_text(text: str):
-    text = text.lower()
-    text = re.sub(r'[^a-z0-9\s]', '', text)  # remove symbols
-    text = re.sub(r'\s+', ' ', text)         # normalize spaces
-    return text.strip()
-
-# ==============================
-# 🚨 DETECTION SYSTEM
-# ==============================
-
 def contains_bad_word(text: str):
-    text = normalize_text(text)
-    compact = text.replace(" ", "")
-
-    for word in BAD_WORDS:
-        clean_word = word.replace(" ", "")
-
-        # Short word protection (avoid false positives)
-        if len(clean_word) <= 2:
-            pattern = r'\b' + re.escape(clean_word) + r'\b'
-            if re.search(pattern, text):
-                return True
-        else:
-            if clean_word in compact:
-                return True
-
-    return False
-
-  #bio link 
-
-def contains_link_or_username(text: str):
     text = text.lower()
-
-    # Detect http/https links
-    if re.search(r'https?://', text):
-        return True
-
-    # Detect telegram username mentions like @username
-    if re.search(r'@\w{4,}', text):
-        return True
-
-    # Detect t.me links
-    if "t.me/" in text:
-        return True
-
+    for word in BAD_WORDS:
+        pattern = r"\b" + re.escape(word) + r"\b"
+        if re.search(pattern, text):
+            return True
     return False
-  
 
 # ==============================
-# 🛡 MAIN HANDLER
+# 🛡 REGISTER FUNCTION
 # ==============================
 
-def register_antiporn(app: Client):
+def register_badwords_guard(app: Client):
 
     @app.on_message(filters.text & filters.group)
-    async def anti_porn_handler(client: Client, message: Message):
+    async def badword_handler(client: Client, message: Message):
 
         if not message.text:
-            return
-
-        if not contains_bad_word(message.text):
             return
 
         user_id = message.from_user.id
         chat_id = message.chat.id
 
-        # Skip admins & owner
+        # Skip admins safely (no enum import)
         member = await client.get_chat_member(chat_id, user_id)
-        if member.status in [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
+        if member.status in ["administrator", "creator"]:
+            return
+
+        if not contains_bad_word(message.text):
             return
 
         # Delete message
@@ -123,32 +82,32 @@ def register_antiporn(app: Client):
         warn_count = WARNINGS[user_id]
 
         try:
-            # 1️⃣ First offense → Warn
+            # 1️⃣ Warn
             if warn_count == 1:
                 await message.reply_text(
-                    "⚠️ Warning 1/3\nInappropriate language detected."
+                    "⚠️ Warning 1/3\nAbusive language detected."
                 )
 
-            # 2️⃣ Second offense → 10 min mute
+            # 2️⃣ Mute
             elif warn_count == 2:
                 await client.restrict_chat_member(
                     chat_id,
                     user_id,
                     ChatPermissions(),
-                    until_date=datetime.now() + timedelta(minutes=10)
+                    until_date=datetime.now() + timedelta(minutes=15)
                 )
                 await message.reply_text(
-                    "🔇 Warning 2/3\nUser muted for 10 minutes."
+                    "🔇 Warning 2/3\nUser muted for 15 minutes."
                 )
 
-            # 3️⃣ Third offense → Ban
+            # 3️⃣ Ban
             else:
                 await client.ban_chat_member(chat_id, user_id)
                 await message.reply_text(
-                    "🚫 User banned for repeated abusive language."
+                    "🚫 User banned for repeated abusive behavior."
                 )
 
         except ChatAdminRequired:
             await message.reply_text(
                 "❌ I need ban & restrict permissions to take action."
-)
+            )
