@@ -30,7 +30,7 @@ def private_panel(_):
         ],
         [InlineKeyboardButton(text=_["S_B_4"], callback_data="settings_back_helper")],
         [
-            InlineKeyboardButton(text=_["S_B_7"], callback_data="gib_source"),
+            InlineKeyboardButton(text=_["S_B_5"], callback_data="OWNER_ID"),
         ],
         [
             InlineKeyboardButton(text="✦ ᴡєʙ ɢᴧϻєꜱ 🎮✨", url="https://telegram-game-hub.vercel.app"),
