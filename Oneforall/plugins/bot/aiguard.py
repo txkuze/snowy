@@ -1,21 +1,23 @@
+import os
 import re
-import asyncio
 from datetime import datetime, timedelta
 
 from pyrogram import Client, filters
-from pyrogram.types import Message
-from pyrogram.types import ChatMemberStatus, ChatPermissions
+from pyrogram.types import Message, ChatPermissions
 from pyrogram.errors import ChatAdminRequired
 
 from openai import OpenAI
 
 # ==============================
-# 🔑 SET YOUR OPENAI API KEY
+# 🔑 OPENAI KEY (ENV BASED)
 # ==============================
 
-OPENAI_API_KEY = "YOUR_OPENAI_API_KEY"
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-client_ai = OpenAI(api_key=OPENAI_API_KEY)
+if not OPENAI_API_KEY:
+    raise ValueError("OPENAI_API_KEY not found in environment variables")
+
+ai_client = OpenAI(api_key=OPENAI_API_KEY)
 
 # ==============================
 # ⚠️ WARNING STORAGE (memory)
@@ -24,7 +26,7 @@ client_ai = OpenAI(api_key=OPENAI_API_KEY)
 WARNINGS = {}
 
 # ==============================
-# 🔗 LINK DETECTION
+# 🔗 LINK / USERNAME DETECTION
 # ==============================
 
 def contains_link(text: str):
@@ -33,10 +35,10 @@ def contains_link(text: str):
     if re.search(r'https?://', text):
         return True
 
-    if re.search(r'@\w{4,}', text):
+    if "t.me/" in text:
         return True
 
-    if "t.me/" in text:
+    if re.search(r'@\w{4,}', text):
         return True
 
     return False
@@ -47,7 +49,7 @@ def contains_link(text: str):
 
 async def ai_moderation_check(text: str):
     try:
-        response = client_ai.moderations.create(
+        response = ai_client.moderations.create(
             model="omni-moderation-latest",
             input=text
         )
@@ -64,7 +66,7 @@ async def ai_moderation_check(text: str):
         return False
 
 # ==============================
-# 🛡 MAIN REGISTRATION FUNCTION
+# 🛡 MAIN REGISTER FUNCTION
 # ==============================
 
 def register_ai_guard(app: Client):
@@ -78,18 +80,18 @@ def register_ai_guard(app: Client):
         user_id = message.from_user.id
         chat_id = message.chat.id
 
-        # Skip admins & owner
+        # Skip admins & creator (STRING SAFE METHOD)
         member = await client.get_chat_member(chat_id, user_id)
-        if member.status in [ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER]:
+        if member.status in ["administrator", "creator"]:
             return
 
         violation = False
 
-        # 🔎 Check link spam first (instant)
+        # 🔎 Fast link detection
         if contains_link(message.text):
             violation = True
 
-        # 🤖 AI moderation check
+        # 🤖 AI moderation
         if await ai_moderation_check(message.text):
             violation = True
 
@@ -135,4 +137,4 @@ def register_ai_guard(app: Client):
         except ChatAdminRequired:
             await message.reply_text(
                 "❌ I need ban & restrict permissions to take action."
-              )
+            )
