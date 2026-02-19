@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from pyrogram.enums import ChatMemberStatus, ChatPermissions
+from pyrogram.types import ChatMemberStatus, ChatPermissions
 from pyrogram.errors import ChatAdminRequired
 
 from openai import OpenAI
