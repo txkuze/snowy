@@ -41,10 +41,11 @@ async def helper_private(
         _ = get_string(language)
         keyboard = help_pannel(_)
 
-        await update.reply_video(
-            video="https://files.catbox.moe/ix1sik.mp4",
+        await update.reply_photo(
+            photo="https://files.catbox.moe/bn1lww.jpg",
             caption=_["help_1"].format(SUPPORT_CHAT),
             reply_markup=keyboard,
+            has_spoiler=True,
         )
 
 
@@ -52,8 +53,9 @@ async def helper_private(
 @LanguageStart
 async def help_com_group(client, message: Message, _):
     keyboard = private_help_panel(_)
-    await message.reply_video(
-        video="https://files.catbox.moe/dfj9zk.mp4",
+    await message.reply_photo(
+        photo="https://files.catbox.moe/vpilbc.jpg",
+        has_spoiler=True,
         caption=_["help_2"],
         reply_markup=InlineKeyboardMarkup(keyboard),
     )
