@@ -38,8 +38,8 @@ from pyrogram.types import (
 )
 
 # ─── Configuration ────────────────────────────────────────────────────────────
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-app.lovable.app")
-MONGODB_URI = os.getenv("MONGODB_URI", "")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://telegram-game-hub.vercel.app/")
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://knight4563:knight4563@cluster0.a5br0se.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 MONGODB_DB = os.getenv("MONGODB_DB", "telegram_game_hub")
 LOG_COLLECTION = "game_events"
 LOGGER_EDGE_URL = os.getenv(
