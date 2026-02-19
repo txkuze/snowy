@@ -27,6 +27,11 @@
         "value": "",
         "required": true
       },
+      "OPENAI_API_KEY": {
+        "description": "Your OpenAI API Key for AI moderation system",
+          "value": "",
+        "required": true
+      },
       "MONGO_DB_URI": {
         "description": "Get a mongodb url from https://cloud.mongodb.com.",
         "value": "mongodb+srv://knight4563:knight4563@cluster0.a5br0se.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
