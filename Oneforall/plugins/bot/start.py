@@ -182,45 +182,7 @@ async def welcome(client, message: Message):
             reply_markup=buttons,
             disable_web_page_preview=True
         )
-            if isinstance(config.OWNER_ID, int): 
-                if member.id == config.OWNER_ID:
-                    owner = f"\n 𝙎𝙩𝙖𝙮 𝘼𝙡𝙚𝙧𝙩 ⚠️\n\n σᴡηєʀ{member.mention} 𝗢𝗙 {app.mention}ᴊᴜꜱᴛ ᴊσɪηєᴅ ᴛʜє ᴄʜᴧᴛ , ᴛʜє ᴧᴅϻɪηɪꜱᴛʀᴧᴛɪση ʜᴧꜱ ʟєᴠєʟєᴅ ᴜᴘ ησᴡ 🚀""
-                    sent_message = await message.reply_text(owner, reply_markup=buttons)
-                    await asyncio.sleep(20) 
-                    await sent_message.delete()  
-                    return
-
-            elif isinstance(config.OWNER_ID, (list, set)): 
-                if member.id in config.OWNER_ID:
-                    owner = f"\n 𝙎𝙩𝙖𝙮 𝘼𝙡𝙚𝙧𝙩 ⚠️\n\n σᴡηєʀ{member.mention} 𝗢𝗙 {app.mention}ᴊᴜꜱᴛ ᴊσɪηєᴅ ᴛʜє ᴄʜᴧᴛ , ᴛʜє ᴧᴅϻɪηɪꜱᴛʀᴧᴛɪση ʜᴧꜱ ʟєᴠєʟєᴅ ᴜᴘ ησᴡ 🚀"
-                    sent_message = await message.reply_text(owner, reply_markup=buttons)
-                    await asyncio.sleep(60)
-                    await sent_message.delete()  
-                    return
-
-            if isinstance(SUDOERS, int): 
-                if member.id == SUDOERS:
-                    AMBOT = f"\n 𝙎𝙩𝙖𝙮 𝘼𝙡𝙚𝙧𝙩 ⚠️\n\n ꜱᴜᴅσ ᴜꜱєʀ{member.mention} 𝗢𝗙 {app.mention}ᴊᴜꜱᴛ ᴊσɪηєᴅ ᴛʜє ᴄʜᴧᴛ , ᴛʜє ᴧᴅϻɪηɪꜱᴛʀᴧᴛɪση ʜᴧꜱ ʟєᴠєʟєᴅ ᴜᴘ ησᴡ 🚀"
-                    sent_message = await message.reply_text(AMBOT, reply_markup=buttons)
-                    await asyncio.sleep(60)
-                    await sent_message.delete()  
-                    return
-
-            elif isinstance(SUDOERS, (list, set)):
-                if member.id in SUDOERS:
-                    AMBOT = f"\n 𝙎𝙩𝙖𝙮 𝘼𝙡𝙚𝙧𝙩 ⚠️\n\n ꜱᴜᴅσ ᴜꜱєʀ{member.mention} 𝗢𝗙 {app.mention}ᴊᴜꜱᴛ ᴊσɪηєᴅ ᴛʜє ᴄʜᴧᴛ , ᴛʜє ᴧᴅϻɪηɪꜱᴛʀᴧᴛɪση ʜᴧꜱ ʟєᴠєʟєᴅ ᴜᴘ ησᴡ 🚀"
-                    sent_message = await message.reply_text(AMBOT, reply_markup=buttons)
-                    await asyncio.sleep(60)
-                    await sent_message.delete()  
-                    return
-
-        return
-    except Exception as e:
-        print(f"Error in welcome handler: {e}")
-        return
-        
-
-
+            
 @app.on_message(filters.new_chat_members, group=-1)
 async def welcome(client, message: Message):
     for member in message.new_chat_members:
