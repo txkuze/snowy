@@ -1,10 +1,11 @@
 from Oneforall import user_collection
+from Oneforall import app
 from pyrogram import filters
 from pyrogram.types import Message
 import random
 
 
-@bot.on_message(filters.command("rob"))
+@app.on_message(filters.command("rob"))
 async def rob_cmd(_, message: Message):
     # Must reply to someone
     if not message.reply_to_message:
@@ -133,7 +134,7 @@ async def rob_cmd(_, message: Message):
         )
 
 
-@bot.on_message(filters.command("unlockbalance"))
+@app.on_message(filters.command("unlockbalance"))
 async def unlock_balance_cmd(_, message: Message):
     user_id = message.from_user.id
     user = await user_collection.find_one({"id": user_id})
@@ -157,7 +158,7 @@ async def unlock_balance_cmd(_, message: Message):
     await message.reply("🔓 **Your balance has been unlocked!**")
 
 
-@bot.on_message(filters.command("lockbalance"))
+@app.on_message(filters.command("lockbalance"))
 async def lock_balance_cmd(_, message: Message):
     user_id = message.from_user.id
     user = await user_collection.find_one({"id": user_id})
