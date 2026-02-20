@@ -99,8 +99,8 @@ def queuemarkup(_, vidid, chat_id):
         ],
         [
             InlineKeyboardButton(
-                text="๏ ᴍᴏʀᴇ ๏",
-                url="https://t.me/BRANDED_WORLD",
+                text="🥀 ᴄ❍ᴅєʀ",
+                url="https://t.me/cyber_github",
             ),
         ],
     ]
