@@ -8,7 +8,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, 
 from youtubesearchpython.__future__ import VideosSearch
 
 import config
-from config import BANNED_USERS
+from config import BANNED_USERS, FORCE_CHANNEL_1, FORCE_CHANNEL_2
 from Oneforall import app
 from Oneforall.misc import _boot_
 from Oneforall.plugins.sudo.sudoers import sudoers_list
