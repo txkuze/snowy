@@ -59,6 +59,9 @@ AUTO_GCAST = os.getenv("AUTO_GCAST")
 # Auto Broadcast Message That You Want Use In Auto Broadcast In All Groups.
 AUTO_GCAST_MSG = os.getenv("AUTO_GCAST_MSG", "")
 
+FORCE_CHANNEL_1 = os.getenv("FORCE_CHANNEL_1", "https://t.me/dark_musictm")
+FORCE_CHANNEL_2 = os.getenv("FORCE_CHANNEL_2", "https://t.me/docker_git_bit")
+
 # Get this credentials from https://developer.spotify.com/dashboard
 SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID", "6fb7e1766693439b86ec57e3deb3c36f")
 SPOTIFY_CLIENT_SECRET = os.getenv(
