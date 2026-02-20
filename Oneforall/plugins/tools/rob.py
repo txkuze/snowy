@@ -1,56 +1,81 @@
-from Oneforall import Hotty as bot
 from Oneforall import user_collection
 from pyrogram import filters
 from pyrogram.types import Message
 import random
 
+
 @bot.on_message(filters.command("rob"))
 async def rob_cmd(_, message: Message):
-
     # Must reply to someone
     if not message.reply_to_message:
-        return await message.reply("❗ Reply to a user!\nUsage:\n/rob [reply] [amount]")
+        return await message.reply(
+            "❗ **Reply to a user!**\n\n"
+            "Usage: `/rob [amount]`\n"
+            "Example: `/rob 500` (reply to user with 500 amount)"
+        )
 
     target = message.reply_to_message.from_user
     robber = message.from_user
 
+    # Can't rob yourself
+    if target.id == robber.id:
+        return await message.reply("❌ **You can't rob yourself!**")
+
     # Amount required
+    if len(message.command) < 2:
+        return await message.reply(
+            "❗ **Enter amount!**\n\n"
+            "Usage: `/rob [amount]`"
+        )
+
     try:
         amount = int(message.command[1])
-    except:
-        return await message.reply("❗ Enter a valid amount!\nUsage:\n/rob [reply] [amount]")
+    except ValueError:
+        return await message.reply("❗ **Enter a valid number!**")
 
-    if amount < 1 or amount > 100000:
-        return await message.reply("⚠ Amount must be between **1–100000**.")
+    if amount < 1:
+        return await message.reply("❌ **Amount must be at least 1!**")
 
-    # Fetch robber + target data
+    if amount > 100000:
+        return await message.reply("⚠️ **Maximum amount is 100000!**")
+
+    # Fetch robber data
     robber_data = await user_collection.find_one({"id": robber.id})
-    target_data = await user_collection.find_one({"id": target.id})
-
-    # Create user if not exist
     if not robber_data:
         robber_data = {"id": robber.id, "balance": 0, "lockbalance": False}
         await user_collection.insert_one(robber_data)
+        robber_data = await user_collection.find_one({"id": robber.id})
 
+    # Fetch target data
+    target_data = await user_collection.find_one({"id": target.id})
     if not target_data:
         target_data = {"id": target.id, "balance": 0, "lockbalance": False}
         await user_collection.insert_one(target_data)
+        target_data = await user_collection.find_one({"id": target.id})
 
-    # Target lock check
-    if target_data.get("lockbalance"):
-        return await message.reply(f"🔒 **{target.first_name}'s balance is locked. You can't rob!**")
+    # Get balances
+    robber_balance = robber_data.get("balance", 0)
+    target_balance = target_data.get("balance", 0)
 
-    # Low balance check
-    if target_data["balance"] < amount:
+    # Check if target's balance is locked
+    if target_data.get("lockbalance", False):
         return await message.reply(
-            f"😅 - {target.first_name} only has **${target_data['balance']}**.\nYou must ask for less!"
+            f"🔒 **{target.first_name}**'s balance is locked!\n"
+            f"You can't rob them!"
         )
 
-    # Rob success/fail chance
+    # Check if target has enough balance
+    if target_balance < amount:
+        return await message.reply(
+            f"😅 **{target.first_name}** has only **${target_balance}**.\n"
+            f"Ask for less amount!"
+        )
+
+    # Rob success/fail chance (50% each)
     success = random.randint(1, 100)
 
     if success <= 50:
-        # SUCCESS — money transfer
+        # SUCCESS — transfer money
         await user_collection.update_one(
             {"id": target.id},
             {"$inc": {"balance": -amount}}
@@ -60,14 +85,30 @@ async def rob_cmd(_, message: Message):
             {"$inc": {"balance": amount}}
         )
 
+        new_robber_balance = robber_balance + amount
+        new_target_balance = target_balance - amount
+
         return await message.reply(
-            f"💰 **Robbery Successful!**\n"
-            f"{robber.first_name} stole **${amount}** from {target.first_name}!"
+            f"💰 **Robbery Successful!**\n\n"
+            f"👤 **Robber:** {robber.first_name}\n"
+            f"🎯 **Victim:** {target.first_name}\n"
+            f"💵 **Amount:** ${amount}\n\n"
+            f"📊 **New Balances:**\n"
+            f"• {robber.first_name}: **${new_robber_balance}**\n"
+            f"• {target.first_name}: **${new_target_balance}**"
         )
 
     else:
-        # FAIL — robber pays fine
-        fine = int(amount * 0.30)  # 30% fine
+        # FAIL — robber pays fine (30%)
+        fine = int(amount * 0.30)
+
+        # Check if robber can pay fine
+        if robber_balance < fine:
+            return await message.reply(
+                f"🚨 **Robbery Failed!**\n\n"
+                f"You need **${fine}** to pay the penalty,\n"
+                f"but you only have **${robber_balance}**!"
+            )
 
         await user_collection.update_one(
             {"id": robber.id},
@@ -78,27 +119,36 @@ async def rob_cmd(_, message: Message):
             {"$inc": {"balance": fine}}
         )
 
-        return await message.reply(
-            f"🚨 **Robbery Failed!**\n"
-            f"{robber.first_name} paid **${fine}** as penalty to {target.first_name}!"
-        )
+        new_robber_balance = robber_balance - fine
+        new_target_balance = target_balance + fine
 
+        return await message.reply(
+            f"🚨 **Robbery Failed!**\n\n"
+            f"👤 **Robber:** {robber.first_name}\n"
+            f"🎯 **Victim:** {target.first_name}\n"
+            f"💸 **Fine:** ${fine} (30% of amount)\n\n"
+            f"📊 **New Balances:**\n"
+            f"• {robber.first_name}: **${new_robber_balance}**\n"
+            f"• {target.first_name}: **${new_target_balance}**"
+        )
 
 
 @bot.on_message(filters.command("unlockbalance"))
 async def unlock_balance_cmd(_, message: Message):
     user_id = message.from_user.id
-
-    # Find user
     user = await user_collection.find_one({"id": user_id})
+
+    # Create account if not exists
     if not user:
-        return await message.reply("❌ You don't have an account yet!")
+        new_user = {"id": user_id, "balance": 0, "lockbalance": False}
+        await user_collection.insert_one(new_user)
+        user = await user_collection.find_one({"id": user_id})
 
-    # If already unlocked
+    # Check if already unlocked
     if not user.get("lockbalance", False):
-        return await message.reply("🔓 Your balance is already unlocked!")
+        return await message.reply("🔓 **Your balance is already unlocked!**")
 
-    # Unlock the balance
+    # Unlock balance
     await user_collection.update_one(
         {"id": user_id},
         {"$set": {"lockbalance": False}}
@@ -110,17 +160,19 @@ async def unlock_balance_cmd(_, message: Message):
 @bot.on_message(filters.command("lockbalance"))
 async def lock_balance_cmd(_, message: Message):
     user_id = message.from_user.id
-
-    # Find user
     user = await user_collection.find_one({"id": user_id})
+
+    # Create account if not exists
     if not user:
-        return await message.reply("❌ You don't have an account yet!")
+        new_user = {"id": user_id, "balance": 0, "lockbalance": False}
+        await user_collection.insert_one(new_user)
+        user = await user_collection.find_one({"id": user_id})
 
-    # If already locked
+    # Check if already locked
     if user.get("lockbalance", False):
-        return await message.reply("🔒 Your balance is already locked!")
+        return await message.reply("🔒 **Your balance is already locked!**")
 
-    # Lock the balance
+    # Lock balance
     await user_collection.update_one(
         {"id": user_id},
         {"$set": {"lockbalance": True}}
