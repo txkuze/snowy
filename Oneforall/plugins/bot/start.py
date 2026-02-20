@@ -8,7 +8,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, 
 from youtubesearchpython.__future__ import VideosSearch
 
 import config
-from config import BANNED_USERS, FORCE_CHANNEL_1, FORCE_CHANNEL_2
+from config import BANNED_USERS
 from Oneforall import app
 from Oneforall.misc import _boot_
 from Oneforall.plugins.sudo.sudoers import sudoers_list
@@ -26,12 +26,14 @@ from Oneforall.utils.inline import help_pannel, private_panel, start_panel
 from strings import get_string
 from Oneforall.misc import SUDOERS
 
+
 # ==============================
 # 🔒 FORCE SUB CHANNELS
 # ==============================
 
 FORCE_CHANNEL_1 = config.FORCE_CHANNEL_1
 FORCE_CHANNEL_2 = config.FORCE_CHANNEL_2
+
 
 STICKER = [
     "CAACAgUAAxkBAAEQEGVpSR-TuCKHP8D69SvDAAH2Gn7QjXEAAtIEAAKP9uhXzLPwoqMKxuQ2BA",
@@ -43,10 +45,10 @@ EMOJIOS = ["🚩", "🥀", "🪄", "🩷", "⚡", "❤️‍🩹", "🩶", "🩵
 
 
 # ==============================
-# 🔒 FORCE SUB CHECK FUNCTION
+# PRIVATE FORCE SUB CHECK
 # ==============================
 
-async def force_sub_check(message: Message):
+async def force_sub_private(message: Message):
     try:
         user_id = message.from_user.id
 
@@ -59,19 +61,19 @@ async def force_sub_check(message: Message):
                 [
                     [
                         InlineKeyboardButton(
-                            "⁠・ᴊσɪη ᴄʜᴧηηєʟ 1 📢✨",
+                            "📢 Join Channel 1",
                             url=f"https://t.me/{FORCE_CHANNEL_1}"
                         )
                     ],
                     [
                         InlineKeyboardButton(
-                            "⁠・ᴊσɪη ᴄʜᴧηηєʟ 1 📢✨",
+                            "📢 Join Channel 2",
                             url=f"https://t.me/{FORCE_CHANNEL_2}"
                         )
                     ],
                     [
                         InlineKeyboardButton(
-                            "⁠・ᴊσɪηєᴅ ✅✨",
+                            "✅ I Have Joined",
                             callback_data="check_sub"
                         )
                     ]
@@ -80,9 +82,10 @@ async def force_sub_check(message: Message):
 
             await message.reply_photo(
                 photo=config.START_IMG_URL,
-                caption="✦ᴀᴄᴄєss ᴅєηɪєᴅ ❌\n❍📜ʏσᴜ ᴍᴜsᴛ ᴊσɪη ʙσᴛʜ ᴄʜᴧηηєʟs ᴛσ ᴜsє ᴛʜɪs ʙσᴛ 🔒✨",
+                caption="🔒 **Access Denied!**\n\nYou must join both channels to use this bot.",
                 reply_markup=buttons
             )
+
             return True
 
     except Exception as e:
@@ -91,17 +94,21 @@ async def force_sub_check(message: Message):
     return False
 
 
+# ==============================
+# PRIVATE START
+# ==============================
+
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
 async def start_pm(client, message: Message, _):
 
-    # 🔒 Force Join Check
-    if await force_sub_check(message):
+    # 🔒 Force Join only here (PRIVATE)
+    if await force_sub_private(message):
         return
 
     await add_served_user(message.from_user.id)
     await message.react("❤")
-
+     
     accha = await message.reply_text(text=random.choice(EMOJIOS))
     await asyncio.sleep(1.3)
     await accha.edit("🏓..ᴍᴇᴇɴʏ..ᴍɪɴʏ..ᴍᴏᴇ✨")
@@ -118,7 +125,6 @@ async def start_pm(client, message: Message, _):
 
     if len(message.text.split()) > 1:
         name = message.text.split(None, 1)[1]
-
         if name[0:4] == "help":
             keyboard = help_pannel(_)
             return await message.reply_photo(
@@ -127,7 +133,6 @@ async def start_pm(client, message: Message, _):
                 reply_markup=keyboard,
                 has_spoiler=True,
             )
-
         if name[0:3] == "sud":
             await sudoers_list(client=client, message=message, _=_)
             if await is_on_off(2):
@@ -136,7 +141,6 @@ async def start_pm(client, message: Message, _):
                     text=f"{message.from_user.mention} ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ <b>sᴜᴅᴏʟɪsᴛ</b>.\n\n<b>ᴜsᴇʀ ɪᴅ :</b> <code>{message.from_user.id}</code>\n<b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{message.from_user.username}",
                 )
             return
-
         if name[0:3] == "inf":
             m = await message.reply_text("🔎")
             query = (str(name)).replace("info_", "", 1)
@@ -151,26 +155,17 @@ async def start_pm(client, message: Message, _):
                 channel = result["channel"]["name"]
                 link = result["link"]
                 published = result["publishedTime"]
-
             searched_text = _["start_6"].format(
                 title, duration, views, published, channellink, channel, app.mention
             )
-
             key = InlineKeyboardMarkup(
                 [
                     [
-                        InlineKeyboardButton(
-                            text="˹ ɪɴꜰɪɴɪᴛʏ ✘ ɴᴇᴛᴡᴏʀᴋ˼ 🎧",
-                            url="https://t.me/dark_musictm"
-                        ),
-                        InlineKeyboardButton(
-                            text=_["S_B_9"],
-                            url=config.SUPPORT_CHAT
-                        ),
+                        InlineKeyboardButton(text="˹ ɪɴꜰɪɴɪᴛʏ ✘ ɴᴇᴛᴡᴏʀᴋ˼ 🎧", url="https://t.me/dark_musictm"),
+                        InlineKeyboardButton(text=_["S_B_9"], url=config.SUPPORT_CHAT),
                     ],
                 ]
             )
-
             await m.delete()
             await app.send_photo(
                 chat_id=message.chat.id,
@@ -178,13 +173,11 @@ async def start_pm(client, message: Message, _):
                 caption=searched_text,
                 reply_markup=key,
             )
-
             if await is_on_off(2):
                 return await app.send_message(
                     chat_id=config.LOGGER_ID,
                     text=f"{message.from_user.mention} ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ ᴛᴏ ᴄʜᴇᴄᴋ <b>ᴛʀᴀᴄᴋ ɪɴғᴏʀᴍᴀᴛɪᴏɴ</b>.\n\n<b>ᴜsᴇʀ ɪᴅ :</b> <code>{message.from_user.id}</code>\n<b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{message.from_user.username}",
                 )
-
     else:
         out = private_panel(_)
         await message.reply_photo(
@@ -193,7 +186,6 @@ async def start_pm(client, message: Message, _):
             reply_markup=InlineKeyboardMarkup(out),
             has_spoiler=True,
         )
-
         if await is_on_off(2):
             return await app.send_message(
                 chat_id=config.LOGGER_ID,
@@ -202,7 +194,7 @@ async def start_pm(client, message: Message, _):
 
 
 # ==============================
-# 🔁 CALLBACK CHECK
+# FORCE JOIN CALLBACK
 # ==============================
 
 @app.on_callback_query(filters.regex("check_sub"))
@@ -210,15 +202,28 @@ async def check_subscription(client, callback_query: CallbackQuery):
 
     user_id = callback_query.from_user.id
 
-    try:
-        member1 = await app.get_chat_member(f"@{FORCE_CHANNEL_1}", user_id)
-        member2 = await app.get_chat_member(f"@{FORCE_CHANNEL_2}", user_id)
+    member1 = await app.get_chat_member(f"@{FORCE_CHANNEL_1}", user_id)
+    member2 = await app.get_chat_member(f"@{FORCE_CHANNEL_2}", user_id)
 
-        if member1.status not in ["left", "kicked"] and member2.status not in ["left", "kicked"]:
-            await callback_query.message.delete()
-            await callback_query.message.reply_text("✅ Subscription Verified!\n\nNow send /start again.")
-        else:
-            await callback_query.answer("❌ You have not joined both channels!", show_alert=True)
+    if member1.status not in ["left", "kicked"] and member2.status not in ["left", "kicked"]:
+        await callback_query.message.delete()
+        await callback_query.message.reply_text("✅ Subscription Verified!\n\nNow send /start again.")
+    else:
+        await callback_query.answer("❌ You have not joined both channels!", show_alert=True)
 
-    except Exception as e:
-        print(e)
+
+# ==============================
+# GROUP START (UNCHANGED)
+# ==============================
+
+@app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
+@LanguageStart
+async def start_gp(client, message: Message, _):
+    out = start_panel(_)
+    uptime = int(time.time() - _boot_)
+    await message.reply_photo(
+        photo=config.START_IMG_URL,
+        caption=_["start_1"].format(app.mention, get_readable_time(uptime)),
+        reply_markup=InlineKeyboardMarkup(out),
+    )
+    return await add_served_chat(message.chat.id)
