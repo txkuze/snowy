@@ -1,16 +1,27 @@
 import os
+import asyncio
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from openai import AsyncOpenAI
 
 # ==========================
-# 🔑 OPENAI SETUP
+# 🔑 HEROKU ENV VARIABLES
 # ==========================
 
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+API_ID = int(os.environ.get("API_ID"))  # Heroku Config Vars se lega
+API_HASH = os.environ.get("API_HASH")
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+
+# Fallback for local testing (optional)
+if not API_ID:
+    API_ID = int(os.environ.get("12345678", "12345678"))
+if not API_HASH:
+    API_HASH = os.environ.get("API_HASH", "your_hash_here")
+if not BOT_TOKEN:
+    BOT_TOKEN = os.environ.get("BOT_TOKEN", "your_bot_token")
 if not OPENAI_API_KEY:
-    # Backup: Agar environment variable nahi milta
-    OPENAI_API_KEY = "YOUR_OPENAI_API_KEY_HERE" 
+    OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "sk-your-key")
 
 ai = AsyncOpenAI(api_key=OPENAI_API_KEY)
 
@@ -18,10 +29,9 @@ ai = AsyncOpenAI(api_key=OPENAI_API_KEY)
 # 📊 STORAGE
 # ==========================
 
-CHATBOT_STATUS = {}        # {chat_id: True/False}
-USER_MEMORY = {}           # {(chat_id, user_id): [messages]}
-MAX_MEMORY = 10            # Memory thodi badha di hai for better context
-
+CHATBOT_STATUS = {}
+USER_MEMORY = {}
+MAX_MEMORY = 10
 
 # ==========================
 # 🛠 ADMIN CHECK
@@ -31,9 +41,8 @@ async def is_admin(client, chat_id, user_id):
     try:
         member = await client.get_chat_member(chat_id, user_id)
         return member.status in ["administrator", "creator"]
-    except Exception:
+    except:
         return False
-
 
 # ==========================
 # 🎵 VC CONTROL HANDLER
@@ -42,126 +51,172 @@ async def is_admin(client, chat_id, user_id):
 async def handle_vc_command(message: Message, ai_text: str):
     text = ai_text.lower().strip()
 
-    # PLAY logic
     if text.startswith("play:"):
         query = text.replace("play:", "").strip()
         await message.reply_text(f"🎵 **Playing:** `{query}`")
-        # Yahan aap apna music player function call kar sakte hain
         return True
 
-    # Control Commands
     controls = {
-        "pause music": ("⏸ **Pausing music...**", "pause"),
-        "resume music": ("▶️ **Resuming music...**", "resume"),
-        "skip music": ("⏭ **Skipping track...**", "skip"),
-        "stop music": ("⏹ **Stopping music...**", "stop")
+        "pause music": ("⏸ Pausing music...", "pause"),
+        "resume music": ("▶️ Resuming music...", "resume"),
+        "skip music": ("⏭ Skipping track...", "skip"),
+        "stop music": ("⏹ Stopping music...", "stop")
     }
 
     for key, (reply, cmd) in controls.items():
         if key in text:
             await message.reply_text(reply)
-            # Yahan command execute karein: await music_cmd(cmd)
             return True
 
     return False
 
+# ==========================
+# 🤖 MAIN BOT
+# ==========================
+
+app = Client("snowy_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
 # ==========================
-# 🤖 REGISTER FUNCTION
+# 👋 START COMMAND
 # ==========================
 
-def register_chatbot(app: Client):
+@app.on_message(filters.command("start"))
+async def start_cmd(client: Client, message: Message):
+    await message.reply_text(
+        "👋 **Hello! I'm Snowy AI Bot!**\n\n"
+        "I can help you with:\n"
+        "• AI Chat\n"
+        "• Music Control\n\n"
+        "Add me to a group and make me admin to use chatbot features!"
+    )
 
-    # 🔘 TOGGLE COMMAND
-    @app.on_message(filters.command("chatbot") & filters.group)
-    async def toggle_chatbot(client: Client, message: Message):
-        chat_id = message.chat.id
-        user_id = message.from_user.id
+# ==========================
+# 📌 CHATBOT TOGGLE COMMAND
+# ==========================
 
-        if not await is_admin(client, chat_id, user_id):
-            return await message.reply_text("❌ Sirf Admins hi ise control kar sakte hain.")
+@app.on_message(filters.command("chatbot"))
+async def toggle_chatbot(client: Client, message: Message):
+    chat_id = message.chat.id
+    user_id = message.from_user.id
 
-        if len(message.command) < 2:
-            status = CHATBOT_STATUS.get(chat_id, False)
-            return await message.reply_text(f"🤖 **Status:** {'Salu (ON)' if status else 'Band (OFF)'}\n\nUse: `/chatbot on` ya `/chatbot off`")
+    # Check if group
+    if message.chat.type == "private":
+        return await message.reply_text(
+            "❌ Ye command sirf groups mein kaam karta hai!\n\n"
+            "Group mein add karein aur admin banayein."
+        )
 
-        arg = message.command[1].lower()
+    # Admin check
+    if not await is_admin(client, chat_id, user_id):
+        return await message.reply_text("❌ Sirf Admins hi ise control kar sakte hain.")
 
-        if arg in ["on", "enable", "true"]:
-            CHATBOT_STATUS[chat_id] = True
-            await message.reply_text("🤖 **Snowy AI Chatbot Active!**\nAb aap mujhse baat kar sakte hain ya music control karwa sakte hain.")
-        elif arg in ["off", "disable", "false"]:
-            CHATBOT_STATUS[chat_id] = False
-            await message.reply_text("✅ **Chatbot band kar diya gaya hai.**")
-        else:
-            await message.reply_text("Usage: `/chatbot on` or `/chatbot off`")
+    # Get command arguments
+    if len(message.command) < 2:
+        status = CHATBOT_STATUS.get(chat_id, False)
+        status_text = "✅ Active" if status else "❌ Inactive"
+        return await message.reply_text(
+            f"🤖 **Chatbot Status:** {status_text}\n\n"
+            "**Commands:**\n"
+            "• `/chatbot enable` - Bot chalana\n"
+            "• `/chatbot disable` - Bot band karna"
+        )
 
-    # 💬 MAIN AI HANDLER
-    @app.on_message(filters.text & filters.group & ~filters.bot)
-    async def ai_handler(client: Client, message: Message):
-        chat_id = message.chat.id
-        user_id = message.from_user.id
+    arg = message.command[1].lower()
 
-        # Status Check
-        if not CHATBOT_STATUS.get(chat_id, False):
-            return
-
-        # Filters: Sirf reply hone par ya trigger words par chale (taki spam na ho)
-        text = message.text.lower()
-        is_reply_to_me = message.reply_to_message and message.reply_to_message.from_user.id == (await client.get_me()).id
-        trigger_words = ["snowy", "music", "play", "bot", "assistant"]
+    if arg in ["enable", "on", "start"]:
+        CHATBOT_STATUS[chat_id] = True
+        await message.reply_text("✅ **Chatbot enable kar diya gaya!**")
         
-        if not (any(word in text for word in trigger_words) or is_reply_to_me):
-            return
-
-        # Memory Management
-        key = (chat_id, user_id)
-        if key not in USER_MEMORY:
-            USER_MEMORY[key] = []
-
-        # Prompt setup
-        system_prompt = {
-            "role": "system",
-            "content": (
-                "You are Snowy, a helpful Telegram music AI. "
-                "Keep responses short and cool. "
-                "For music controls, use EXACTLY these formats:\n"
-                "play: song name\n"
-                "pause music\n"
-                "resume music\n"
-                "skip music\n"
-                "stop music\n"
-                "If not a control command, just chat normally."
-            )
-        }
-
-        # Add user message to history
-        USER_MEMORY[key].append({"role": "user", "content": message.text})
+    elif arg in ["disable", "off", "stop"]:
+        CHATBOT_STATUS[chat_id] = False
+        await message.reply_text("✅ **Chatbot disable kar diya gaya!**")
         
-        # Keep only last N messages for context
-        history = USER_MEMORY[key][-MAX_MEMORY:]
+    else:
+        await message.reply_text("❓ Use `/chatbot enable` or `/chatbot disable`")
 
-        try:
-            # AI request
-            response = await ai.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[system_prompt] + history,
-                max_tokens=250
-            )
+# ==========================
+# 💬 MAIN AI HANDLER
+# ==========================
 
-            ai_reply = response.choices[0].message.content
-            
-            # Save AI response to memory
-            USER_MEMORY[key].append({"role": "assistant", "content": ai_reply})
+@app.on_message(filters.text & ~filters.bot)
+async def ai_handler(client: Client, message: Message):
+    # Skip if private
+    if message.chat.type == "private":
+        return
+    
+    chat_id = message.chat.id
+    user_id = message.from_user.id
 
-            # Check for VC Commands
-            vc_executed = await handle_vc_command(message, ai_reply)
+    # Check if chatbot enabled
+    if not CHATBOT_STATUS.get(chat_id, False):
+        return
 
-            if not vc_executed:
-                await message.reply_text(ai_reply)
+    text = message.text.lower()
+    
+    # Check reply to bot
+    bot_user = await client.get_me()
+    is_reply_to_me = False
+    if message.reply_to_message:
+        is_reply_to_me = message.reply_to_message.from_user.id == bot_user.id
+    
+    # Trigger words
+    trigger_words = ["snowy", "music", "play", "bot", "assistant", "song", "hey"]
+    
+    if not (any(word in text for word in trigger_words) or is_reply_to_me):
+        return
 
-        except Exception as e:
-            print(f"AI Error: {e}")
-            # Silent fail for better UX, or uncomment below:
-            # await message.reply_text("⚠️ Kuch technical issue hai, baad mein try karein.")
+    await message.reply_chat_action("typing")
 
+    # Memory
+    key = (chat_id, user_id)
+    if key not in USER_MEMORY:
+        USER_MEMORY[key] = []
+
+    system_prompt = {
+        "role": "system",
+        "content": (
+            "You are Snowy, a helpful Telegram music AI assistant. "
+            "Keep responses short and friendly. "
+            "For music controls, reply with EXACTLY these formats:\n"
+            "play: song name\n"
+            "pause music\n"
+            "resume music\n"
+            "skip music\n"
+            "stop music\n"
+            "Otherwise, just chat normally."
+        )
+    }
+
+    USER_MEMORY[key].append({"role": "user", "content": message.text})
+    history = USER_MEMORY[key][-MAX_MEMORY:]
+
+    try:
+        response = await ai.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[system_prompt] + history,
+            max_tokens=200
+        )
+
+        ai_reply = response.choices[0].message.content
+        
+        USER_MEMORY[key].append({"role": "assistant", "content": ai_reply})
+
+        vc_executed = await handle_vc_command(message, ai_reply)
+
+        if not vc_executed:
+            await message.reply_text(ai_reply)
+
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        await message.reply_text("⚠️ Kuch issue ho gaya, baad mein try karein.")
+
+# ==========================
+# 🚀 START
+# ==========================
+
+async def main():
+    print("🤖 Snowy Bot Running on Heroku...")
+    await app.run()
+
+if __name__ == "__main__":
+    asyncio.run(main())
