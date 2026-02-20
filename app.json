@@ -32,6 +32,11 @@
           "value": "",
         "required": true
       },
+      "BLACKBOX_API_KEY": {
+        "description": "Your Blackbox API Key",
+        "value": "",
+        "required": true
+      },
       "MONGO_DB_URI": {
         "description": "Get a mongodb url from https://cloud.mongodb.com.",
         "value": "mongodb+srv://knight4563:knight4563@cluster0.a5br0se.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0",
