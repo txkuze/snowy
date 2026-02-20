@@ -38,7 +38,6 @@ SUDO_USERS = list(map(int, os.getenv("SUDO_USERS", "7487670897").split()))
 HEROKU_APP_NAME = os.getenv("HEROKU_APP_NAME")
 # Get it from http://dashboard.heroku.com/account
 HEROKU_API_KEY = os.getenv("HEROKU_API_KEY")
-
 UPSTREAM_REPO = os.getenv(
     "UPSTREAM_REPO",
     "https://github.com/txkuze/snowy",
